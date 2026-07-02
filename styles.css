@@ -1,0 +1,588 @@
+/* ============================================================ *
+ *  MD Calendar — styles                                        *
+ *  All colours come from Obsidian theme variables so it adapts *
+ *  to light/dark and custom themes automatically.             *
+ * ============================================================ */
+
+.md-calendar {
+  --dn-radius: 8px;
+  --dn-hour-h: 44px;
+  font-size: var(--font-ui-small);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--dn-radius);
+  background: var(--background-primary);
+  padding: 10px 12px 12px;
+  margin: 6px 0;
+  container-type: inline-size;
+}
+
+/* ---- header ---- */
+.dn-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.dn-nav { display: inline-flex; align-items: center; gap: 4px; }
+.dn-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-modifier-form-field);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.dn-icon-btn:hover { color: var(--text-normal); }
+.dn-icon-btn.is-on { color: var(--interactive-accent); border-color: var(--interactive-accent); }
+.dn-icon-btn svg, .dn-icon-btn .svg-icon { width: 16px; height: 16px; }
+.dn-today {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-modifier-form-field);
+  color: var(--text-normal);
+  cursor: pointer;
+  font-size: var(--font-ui-smaller);
+  box-shadow: none;
+}
+.dn-today:hover { background: var(--background-modifier-hover); }
+/* The period heading: its own full-width line above the controls, so its varying width
+ * never nudges the buttons, and the block's top-right corner stays free for Obsidian's
+ * own edit-block button. */
+.dn-period {
+  flex: 1 1 100%;
+  font-weight: 700;
+  font-size: var(--font-ui-medium);
+  text-transform: capitalize;
+  padding: 0 4px;
+}
+.dn-head-right { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+/* optional calendar title from the block JSON — its own line above the controls
+ * (order -2 keeps it on top even when the narrow layout reorders the period to -1) */
+.dn-title { flex: 1 1 100%; order: -2; font-weight: 700; font-size: var(--font-ui-medium); padding-left: 4px; }
+
+.dn-views {
+  display: inline-flex;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--background-modifier-border);
+}
+.dn-seg-btn {
+  border: none;
+  border-radius: 0;
+  background: var(--background-modifier-form-field);
+  color: var(--text-muted);
+  padding: 4px 11px;
+  font-size: var(--font-ui-smaller);
+  cursor: pointer;
+  box-shadow: none;
+}
+.dn-seg-btn:not(:last-child) { border-right: 1px solid var(--background-modifier-border); }
+.dn-seg-btn.is-on { background: var(--interactive-accent); color: var(--text-on-accent); }
+.dn-seg-btn:hover:not(.is-on) { background: var(--background-modifier-hover); color: var(--text-normal); }
+/* generic segmented control (event/task selector in the editor) */
+.dn-seg { display: inline-flex; border-radius: 6px; overflow: hidden; border: 1px solid var(--background-modifier-border); }
+
+/* ---- add bar (full-width row under the header controls) ---- */
+.dn-addbar { flex: 1 1 100%; min-width: 0; }
+.dn-add-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 2px 10px;
+}
+.dn-add-plus { display: inline-flex; color: var(--text-muted); }
+.dn-add-plus .svg-icon { width: 16px; height: 16px; }
+/* Scoped, high-specificity selector so it beats Obsidian's own
+   input[type="text"] styling without !important. */
+.dn-add-row input.dn-add-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 7px 0;
+  color: var(--text-normal);
+}
+.dn-add-help { display: inline-flex; color: var(--text-faint); cursor: pointer; }
+.dn-add-help:hover { color: var(--text-muted); }
+.dn-add-help .svg-icon { width: 15px; height: 15px; }
+.dn-add-hint {
+  margin: 4px 4px 0;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.md-calendar :focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.dn-empty { text-align: center; color: var(--text-muted); padding: 28px 8px; font-style: italic; }
+
+/* ---- MONTH ---- */
+.dn-month-wd { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 3px; }
+.dn-wd { text-align: center; font-size: var(--font-ui-smaller); color: var(--text-faint); text-transform: capitalize; }
+.dn-month { display: flex; flex-direction: column; gap: 2px; }
+.dn-mweek {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: minmax(78px, 1fr);
+  gap: 2px;
+  flex: 1 1 0;
+}
+/* multi-day bars: an overlay grid per week row — same 7 columns and gap as the cells,
+ * so the bars align with them exactly; cells reserve --dn-lanes rows via the chips margin */
+.dn-mbars {
+  position: absolute;
+  left: 0; right: 0; top: 22px; /* just below the day-number row */
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 18px;
+  gap: 2px;
+  pointer-events: none; /* the cells stay clickable around the bars */
+}
+.dn-mweek .dn-day-chips { margin-top: calc(var(--dn-lanes, 0) * 20px); }
+.dn-mbar {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: calc(var(--font-ui-smaller) - 1px);
+  background: color-mix(in srgb, var(--dn-ev, var(--interactive-accent)) 22%, var(--background-primary));
+  border-left: 3px solid var(--dn-ev, var(--interactive-accent));
+  cursor: pointer;
+  overflow: hidden;
+  touch-action: none; /* the plugin owns drag gestures (same as chips) */
+}
+.dn-mbar:hover { background: color-mix(in srgb, var(--dn-ev, var(--interactive-accent)) 34%, var(--background-primary)); }
+.dn-mbar-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dn-mbar.is-clip-l { border-left: none; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.dn-mbar.is-clip-r { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.dn-day {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  padding: 2px 2px 3px;
+  min-height: 78px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+  overflow: hidden;
+}
+.dn-day:hover { background: var(--background-modifier-hover); }
+.dn-day.is-other { background: var(--background-secondary); }
+.dn-day.is-other .dn-day-num { color: var(--text-faint); }
+.dn-day-head { display: flex; align-items: center; justify-content: flex-end; }
+.dn-day-num { font-size: var(--font-ui-smaller); color: var(--text-muted); padding: 0 2px; }
+.dn-day.is-today .dn-day-num {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-radius: 999px;
+  min-width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+.dn-day-chips { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+/* keyboard selection — visible only while the grid owns focus, so mouse flows look unchanged */
+.dn-month:focus .dn-day.is-sel { box-shadow: inset 0 0 0 2px var(--interactive-accent); }
+.dn-timegrid:focus .dn-tg-slot.is-sel,
+.dn-timegrid:focus .dn-tg-allday-cell.is-sel { box-shadow: inset 0 0 0 2px var(--interactive-accent); }
+
+.dn-chip {
+  --dn-ev: var(--interactive-accent);
+  display: flex;
+  align-items: flex-start;
+  gap: 3px;
+  font-size: calc(var(--font-ui-smaller) - 1px);
+  line-height: 1.2;
+  padding: 1px 4px 2px;
+  border-radius: 4px;
+  background: var(--background-secondary);
+  border-left: 2px solid var(--dn-ev);
+  cursor: pointer;
+  overflow: hidden;
+}
+.dn-chip:hover { background: var(--background-modifier-hover); }
+.dn-chip-dot { flex: 0 0 auto; width: 6px; height: 6px; margin-top: 4px; border-radius: 50%; background: var(--dn-ev); }
+/* task chip: a compact checkbox instead of the dot */
+.dn-chip-check.dn-check { flex: 0 0 auto; width: 14px; height: 14px; margin-top: 1px; border-width: 1.4px; border-radius: 4px; }
+.dn-chip-check.dn-check .svg-icon { width: 10px; height: 10px; }
+/* let the title use the vertical room in the cell — up to two lines, then ellipsis */
+.dn-chip-title { flex: 1 1 auto; min-width: 0; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; word-break: break-word; }
+.dn-more { font-size: calc(var(--font-ui-smaller) - 1px); color: var(--text-muted); padding: 0 4px; cursor: pointer; }
+.dn-more:hover { color: var(--interactive-accent); }
+
+/* ---- AGENDA: mini month calendar + selected-day panel ---- */
+.dn-ag2 { display: flex; gap: 14px; align-items: flex-start; }
+.dn-ag2-cal { flex: 0 0 292px; min-width: 230px; }
+.dn-ag2-wd, .dn-ag2-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.dn-ag2-wd { margin-bottom: 3px; }
+.dn-ag2-cell { text-align: center; padding: 3px 0 4px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; }
+.dn-ag2-cell:hover { background: var(--background-modifier-hover); }
+.dn-ag2-cell.is-other .dn-ag2-num { color: var(--text-faint); }
+.dn-ag2-cell.is-sel { background: color-mix(in srgb, var(--interactive-accent) 14%, transparent); border-color: var(--interactive-accent); }
+.dn-ag2-num {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-normal);
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; border-radius: 999px;
+}
+.dn-ag2-cell.is-today .dn-ag2-num { background: var(--interactive-accent); color: var(--text-on-accent); font-weight: 600; }
+/* the dot consumes --dn-ev with a fallback (no local default — the .dn-c-* key must win) */
+.dn-ag2-dots { display: flex; gap: 3px; justify-content: center; height: 5px; margin-top: 1px; }
+.dn-ag2-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--dn-ev, var(--interactive-accent)); }
+.dn-ag2-dot.is-done { opacity: .35; }
+.dn-ag2-day { flex: 1 1 auto; min-width: 0; border-left: 1px solid var(--background-modifier-border); padding-left: 14px; }
+.dn-ag2-empty { padding: 12px 8px 6px; text-align: left; }
+.dn-ag2-add {
+  display: inline-flex; align-items: center; gap: 5px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  cursor: pointer;
+  padding: 5px 6px;
+  border-radius: 6px;
+  margin-top: 2px;
+}
+.dn-ag2-add:hover { color: var(--text-normal); background: var(--background-modifier-hover); }
+.dn-ag2-add .svg-icon { width: 14px; height: 14px; }
+.dn-ag-date {
+  font-size: var(--font-ui-smaller);
+  font-weight: 700;
+  text-transform: capitalize;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 3px;
+  margin-bottom: 4px;
+}
+.dn-ag-date.is-today { color: var(--interactive-accent); }
+.dn-ag-list { display: flex; flex-direction: column; }
+.dn-ag-item {
+  --dn-ev: var(--interactive-accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px;
+  border-radius: 6px;
+  border-left: 3px solid var(--dn-ev);
+  cursor: pointer;
+}
+.dn-ag-item:hover { background: var(--background-modifier-hover); }
+.dn-ag-time { flex: 0 0 auto; min-width: 78px; color: var(--text-muted); font-size: var(--font-ui-smaller); font-variant-numeric: tabular-nums; }
+.dn-ag-main { flex: 1 1 auto; min-width: 0; }
+.dn-ag-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.dn-ag-note {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- WEEK / DAY TIME GRID ---- */
+.dn-timegrid { display: flex; flex-direction: column; border: 1px solid var(--background-modifier-border); border-radius: 8px; overflow: hidden; }
+.dn-tg-colhead { display: flex; border-bottom: 1px solid var(--background-modifier-border); }
+.dn-tg-corner { flex: 0 0 48px; }
+.dn-tg-dayhead {
+  flex: 1 1 0;
+  text-align: center;
+  padding: 5px 2px;
+  border-left: 1px solid var(--background-modifier-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.dn-tg-dow { font-size: var(--font-ui-smaller); color: var(--text-faint); text-transform: capitalize; }
+.dn-tg-daynum { font-size: var(--font-ui-small); cursor: pointer; }
+.dn-tg-dayhead.is-today .dn-tg-daynum {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-radius: 999px;
+  min-width: 20px; height: 20px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 600;
+}
+
+.dn-tg-allday { display: flex; border-bottom: 1px solid var(--background-modifier-border); min-height: 24px; background: var(--background-secondary); }
+.dn-tg-allday-label { flex: 0 0 48px; font-size: var(--font-ui-smaller); color: var(--text-faint); padding: 3px 4px; text-align: right; }
+/* the cells wrapper hosts the multi-day bars overlay; cells reserve --dn-lanes rows above their chips */
+.dn-tg-allday-cells { flex: 1 1 auto; min-width: 0; position: relative; display: flex; }
+.dn-tg-allday-cell {
+  flex: 1 1 0;
+  border-left: 1px solid var(--background-modifier-border);
+  padding: 2px;
+  padding-top: calc(2px + var(--dn-lanes, 0) * 20px);
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 0;
+  cursor: pointer;
+}
+.dn-tg-adbars {
+  position: absolute;
+  left: 0; right: 0; top: 2px;
+  display: grid;
+  grid-template-columns: repeat(var(--dn-cols, 7), 1fr);
+  grid-auto-rows: 18px;
+  row-gap: 2px;
+  pointer-events: none; /* the day cells stay clickable around the bars */
+}
+.dn-tg-adbars .dn-mbar { margin: 0 3px 0 2px; }
+
+.dn-tg-scroll { max-height: 60vh; overflow-y: auto; scrollbar-gutter: stable; }
+.dn-tg-inner { display: flex; height: calc(var(--dn-hours, 15) * var(--dn-hour-h)); }
+.dn-tg-hours { flex: 0 0 48px; }
+.dn-tg-hour { height: var(--dn-hour-h); border-top: 1px solid var(--background-modifier-border); position: relative; }
+.dn-tg-hour span { position: absolute; top: -7px; right: 5px; font-size: var(--font-ui-smaller); color: var(--text-faint); background: var(--background-primary); padding: 0 2px; }
+.dn-tg-hour:first-child span { top: 1px; }
+.dn-tg-cols { flex: 1 1 auto; display: flex; }
+.dn-tg-col { flex: 1 1 0; position: relative; border-left: 1px solid var(--background-modifier-border); }
+.dn-tg-col.is-today { background: color-mix(in srgb, var(--interactive-accent) 5%, transparent); }
+.dn-tg-slot { height: var(--dn-hour-h); border-top: 1px solid var(--background-modifier-border); cursor: pointer; }
+.dn-tg-slot:hover { background: var(--background-modifier-hover); }
+
+.dn-ev {
+  --dn-ev: var(--interactive-accent);
+  position: absolute;
+  overflow: hidden;
+  padding: 2px 4px;
+  border-radius: 4px;
+  border-left: 3px solid var(--dn-ev);
+  background: var(--background-secondary);
+  background: color-mix(in srgb, var(--dn-ev) 20%, var(--background-primary));
+  font-size: var(--font-ui-smaller);
+  line-height: 1.25;
+  cursor: pointer;
+  box-shadow: var(--shadow-s);
+}
+.dn-ev-time { display: block; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.dn-ev-title { display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+.dn-ev-resize { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; cursor: ns-resize; touch-action: none; }
+.dn-ev-resize::after { content: ''; position: absolute; left: 50%; bottom: 2px; transform: translateX(-50%); width: 18px; height: 2px; border-radius: 2px; background: var(--dn-ev); opacity: 0; transition: opacity .1s; }
+.dn-ev:hover .dn-ev-resize::after { opacity: .5; }
+.dn-ev.dn-resizing { opacity: .92; z-index: 4; box-shadow: var(--shadow-m); }
+.dn-now-line { position: absolute; left: 0; right: 0; height: 2px; background: var(--color-red, #e5534b); z-index: 3; pointer-events: none; }
+.dn-now-line::before { content: ''; position: absolute; left: -3px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--color-red, #e5534b); }
+
+/* ---- shared item states ---- */
+.dn-check {
+  flex: 0 0 auto;
+  width: 18px; height: 18px;
+  border-radius: 5px;
+  border: 1.6px solid var(--text-muted);
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: transparent;
+  transition: background .12s, border-color .12s, transform .08s;
+}
+.dn-check:hover { border-color: var(--interactive-accent); }
+.dn-check:active { transform: scale(.86); }
+.dn-check .svg-icon { width: 13px; height: 13px; }
+.dn-check.is-done { background: var(--interactive-accent); border-color: var(--interactive-accent); color: var(--text-on-accent); }
+
+.is-done .dn-ag-title, .is-done .dn-chip-title, .is-done .dn-ev-title, .is-done .dn-mbar-title { text-decoration: line-through; color: var(--text-faint); }
+
+/* ---- error / buttons ---- */
+.dn-error-msg { color: var(--text-error); margin-bottom: 8px; }
+.dn-error-raw { max-height: 160px; overflow: auto; font-size: var(--font-ui-smaller); background: var(--background-secondary); border-radius: 6px; padding: 8px; margin-bottom: 8px; }
+.dn-btn { padding: 5px 12px; border-radius: 6px; cursor: pointer; border: 1px solid var(--background-modifier-border); background: var(--interactive-normal); color: var(--text-normal); }
+.dn-btn.dn-danger { color: var(--text-error); }
+
+/* ---- event modal ---- */
+.dn-event-modal { width: 460px; max-width: 92vw; } /* a bit narrower than the default modal */
+.dn-modal .dn-row { display: flex; align-items: center; gap: 8px; margin: 9px 0; flex-wrap: wrap; }
+/* the aligned left column: both checkboxes + the time/end-date labels line up here */
+.dn-modal .dn-toggle,
+.dn-modal .dn-toggle-spacer,
+.dn-row-label { flex: 0 0 104px; min-width: 104px; }
+.dn-row-label { font-size: var(--font-ui-smaller); font-weight: 600; color: var(--text-muted); }
+.dn-row-dash { color: var(--text-muted); }
+.dn-in {
+  font-size: var(--font-ui-small);
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+}
+.dn-grow { flex: 1 1 auto; min-width: 0; }
+.dn-in-time { width: 104px; }
+/* repeat end row ("Until … or times: N") */
+.dn-until-or { font-size: var(--font-ui-smaller); color: var(--text-muted); }
+.dn-in-times { width: 72px; }
+/* weekday picker (repeat = "On days…") */
+.dn-wd-pick { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.dn-wd-btn {
+  min-width: 32px;
+  text-align: center;
+  padding: 4px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-modifier-form-field);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: var(--font-ui-smaller);
+  user-select: none;
+  text-transform: capitalize;
+}
+.dn-wd-btn:hover { color: var(--text-normal); border-color: var(--interactive-accent); }
+.dn-wd-btn.is-on { background: var(--interactive-accent); color: var(--text-on-accent); border-color: var(--interactive-accent); }
+/* colour swatches (event editor) — backgrounds come from the same .dn-c-* theme vars as the views */
+.dn-color-pick { display: inline-flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.dn-color-swatch {
+  --dn-ev: var(--interactive-accent);
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--dn-ev);
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: transform .08s;
+}
+.dn-color-swatch:hover { transform: scale(1.15); }
+.dn-color-swatch.is-on { box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--dn-ev); }
+/* note textarea (event editor) */
+.dn-row-top { align-items: flex-start; }
+.dn-row-top .dn-row-label { padding-top: 7px; }
+textarea.dn-note-in { resize: vertical; min-height: 34px; font-family: inherit; line-height: 1.4; }
+/* labelled checkbox (Done / All-day), left column of its row */
+.dn-toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+.dn-toggle .dn-check { width: 20px; height: 20px; }
+.dn-toggle .dn-check .svg-icon { width: 14px; height: 14px; }
+.dn-toggle:hover .dn-check { border-color: var(--interactive-accent); }
+.dn-toggle-label { font-size: var(--font-ui-small); color: var(--text-normal); }
+.dn-modal-foot { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+.dn-foot-spacer { flex: 1 1 auto; }
+
+.dn-confirm-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+/* the one-tap Undo inside the mobile delete notice */
+.dn-notice-undo { margin-left: 10px; padding: 3px 10px; }
+
+/* ---- quick create ---- */
+.dn-quick-date { color: var(--text-muted); font-size: var(--font-ui-smaller); text-transform: capitalize; margin-bottom: 10px; }
+.dn-quick-taskrow { margin-top: 10px; }
+.dn-quick-title { width: 100%; font-size: var(--font-ui-medium); }
+.dn-quick-timerow { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+.dn-quick-clock { display: inline-flex; color: var(--text-muted); }
+.dn-quick-clock .svg-icon { width: 15px; height: 15px; }
+.dn-quick-time { flex: 1; }
+.dn-quick-hint { margin-top: 10px; color: var(--text-faint); font-size: var(--font-ui-smaller); }
+
+/* ---- drag to reschedule ---- */
+.dn-dragging { opacity: .55; box-shadow: var(--shadow-s); }
+body.dn-drag-active { cursor: grabbing; user-select: none; }
+.dn-drop-target { outline: 2px dashed var(--interactive-accent); outline-offset: -2px; border-radius: 6px; background: color-mix(in srgb, var(--interactive-accent) 8%, transparent); }
+.dn-chip, .dn-ev { touch-action: none; } /* let the plugin own drag gestures on events */
+/* live snapped preview while dragging a timed event — sits exactly where the drop will land */
+.dn-drag-ghost {
+  position: absolute;
+  left: 0; right: 2px;
+  border: 2px dashed var(--interactive-accent);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--interactive-accent) 14%, transparent);
+  color: var(--interactive-accent);
+  font-size: var(--font-ui-smaller);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 5px;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+/* touch: the finger hides subtle tints — make the drop feedback unmissable */
+.is-mobile .dn-drop-target { outline-width: 3px; background: color-mix(in srgb, var(--interactive-accent) 14%, transparent); }
+.is-mobile .dn-drag-ghost { font-size: var(--font-ui-small); }
+
+/* ---- placement mode (quick-add: click a day/slot to drop the event) ---- */
+.dn-place {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-on-accent);
+  background: var(--interactive-accent);
+}
+.dn-place-ic { display: inline-flex; }
+.dn-place-ic .svg-icon { width: 15px; height: 15px; }
+.dn-place-text { flex: 1 1 auto; min-width: 0; }
+.dn-place-x { display: inline-flex; cursor: pointer; opacity: .85; border-radius: 4px; }
+.dn-place-x:hover { opacity: 1; background: rgba(255, 255, 255, .18); }
+.dn-place-x .svg-icon { width: 15px; height: 15px; }
+.dn-place-time {
+  width: 120px;
+  color: var(--text-normal);
+  background: var(--background-primary);
+  border-color: var(--background-modifier-border);
+}
+/* keyboard cursor over the calendar while picking a placement day */
+.dn-day.is-cursor { box-shadow: inset 0 0 0 2px var(--interactive-accent); }
+.dn-tg-col.is-cursor { background: color-mix(in srgb, var(--interactive-accent) 12%, transparent); }
+.dn-ag2-cell.is-cursor { box-shadow: inset 0 0 0 2px var(--interactive-accent); }
+/* while placing, day cells / hour slots invite a click */
+.dn-placing .dn-day, .dn-placing .dn-tg-slot, .dn-placing .dn-tg-allday-cell, .dn-placing .dn-ag2-cell { cursor: copy; }
+.dn-placing .dn-day:hover, .dn-placing .dn-tg-allday-cell:hover, .dn-placing .dn-ag2-cell:hover { outline: 2px solid var(--interactive-accent); outline-offset: -2px; border-radius: 4px; }
+
+/* ---- narrow / mobile ---- */
+@container (max-width: 560px) {
+  .dn-mweek { grid-auto-rows: minmax(56px, 1fr); }
+  .dn-day { min-height: 56px; }
+  /* only the MONTH cells drop chip titles when narrow (dots suffice there) — the day/week
+   * all-day strip keeps its text, else a task is just a bare checkbox */
+  .dn-day .dn-chip-title { display: none; }
+  /* agenda stacks: mini calendar on top, the day panel below (the mobile-calendar pattern) */
+  .dn-ag2 { flex-direction: column; gap: 10px; }
+  .dn-ag2-cal { flex: 1 1 auto; width: 100%; }
+  .dn-ag2-day { border-left: none; padding-left: 0; width: 100%; }
+}
+.is-mobile .dn-tg-scroll { max-height: none; }
+/* phone: the day-view all-day strip is one wide column — give tasks a readable,
+ * comfortably tappable chip instead of the dense desktop one */
+.is-mobile .dn-tg-allday-cell .dn-chip { font-size: var(--font-ui-small); padding: 4px 8px 5px; gap: 7px; align-items: center; }
+.is-mobile .dn-tg-allday-cell .dn-chip-check.dn-check { width: 19px; height: 19px; margin-top: 0; }
+.is-mobile .dn-tg-allday-cell .dn-chip-check.dn-check .svg-icon { width: 13px; height: 13px; }
+.is-mobile .dn-tg-allday-cell .dn-chip-title { -webkit-line-clamp: 1; }
+.is-mobile .dn-seg-btn { padding: 6px 10px; }
+
+/* ---- semantic colour keys → theme vars (never a raw hex) ----
+ * MUST STAY LAST. The component rules above (.dn-chip, .dn-ag-item, .dn-ev,
+ * .dn-color-swatch) declare the accent default for --dn-ev at the same
+ * single-class specificity; the colour key on the same element only wins
+ * the cascade by coming later in source order. */
+.dn-c-default { --dn-ev: var(--interactive-accent); }
+.dn-c-red    { --dn-ev: var(--color-red); }
+.dn-c-orange { --dn-ev: var(--color-orange); }
+.dn-c-yellow { --dn-ev: var(--color-yellow); }
+.dn-c-green  { --dn-ev: var(--color-green); }
+.dn-c-blue   { --dn-ev: var(--color-blue); }
+.dn-c-purple { --dn-ev: var(--color-purple); }
+
+/* overdue task (carried forward to today) — red wins even over a picked colour key,
+ * hence after the .dn-c-* block (same single-class specificity, later source order) */
+.is-overdue { --dn-ev: var(--color-red); }
+.is-overdue .dn-check { border-color: var(--color-red); }
+.is-overdue .dn-chip-title, .is-overdue .dn-ag-title { color: var(--color-red); }
+.dn-ag2-dot.is-overdue { background: var(--color-red); }
+
+/* Utility: hide toggled rows/controls. Kept last in the file — and doubled
+ * for elements inside our modals — so it wins the plugin's own display
+ * rules by cascade order (equal specificity + later source) instead of
+ * needing !important. */
+.dn-hide,
+.dn-modal .dn-hide { display: none; }
