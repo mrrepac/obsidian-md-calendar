@@ -60,7 +60,12 @@
   font-size: var(--font-ui-medium);
   text-transform: capitalize;
   padding: 0 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  width: fit-content;
 }
+.dn-period:hover { background: var(--background-modifier-hover); }
+.dn-period:focus-visible { outline: 2px solid var(--interactive-accent); outline-offset: 1px; }
 .dn-head-right { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 /* optional calendar title from the block JSON — its own line above the controls
  * (order -2 keeps it on top even when the narrow layout reorders the period to -1) */
@@ -154,6 +159,7 @@
 }
 .dn-mweek .dn-day-chips { margin-top: calc(var(--dn-lanes, 0) * 20px); }
 .dn-mbar {
+  position: relative;
   pointer-events: auto;
   display: flex;
   align-items: center;
@@ -171,6 +177,12 @@
 .dn-mbar-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dn-mbar.is-clip-l { border-left: none; border-top-left-radius: 0; border-bottom-left-radius: 0; }
 .dn-mbar.is-clip-r { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+/* drag one end of a span to change its length (desktop) — a grab strip with a hover grip mark */
+.dn-mbar-resize { position: absolute; top: 0; bottom: 0; width: 7px; cursor: ew-resize; touch-action: none; z-index: 2; }
+.dn-mbar-resize-l { left: 0; }
+.dn-mbar-resize-r { right: 0; }
+.dn-mbar-resize::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 2px; height: 60%; border-radius: 2px; background: var(--dn-ev, var(--interactive-accent)); opacity: 0; transition: opacity .1s; }
+.dn-mbar:hover .dn-mbar-resize::after { opacity: .6; }
 .dn-day {
   border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
@@ -221,6 +233,8 @@
 }
 .dn-chip:hover { background: var(--background-modifier-hover); }
 .dn-chip-dot { flex: 0 0 auto; width: 6px; height: 6px; margin-top: 4px; border-radius: 50%; background: var(--dn-ev); }
+/* timed event: the start hour in the event's color, in place of the dot */
+.dn-chip-hour { flex: 0 0 auto; min-width: 11px; text-align: right; color: var(--dn-ev); font-weight: 700; font-variant-numeric: tabular-nums; font-size: calc(var(--font-ui-smaller) - 1px); line-height: 1.2; }
 /* task chip: a compact checkbox instead of the dot */
 .dn-chip-check.dn-check { flex: 0 0 auto; width: 14px; height: 14px; margin-top: 1px; border-width: 1.4px; border-radius: 4px; }
 .dn-chip-check.dn-check .svg-icon { width: 10px; height: 10px; }
@@ -290,14 +304,17 @@
 .dn-ag-note {
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: pre-wrap;   /* show the description in FULL, keeping the user's line breaks… */
+  overflow-wrap: anywhere;  /* …and wrapping long unbroken tokens (e.g. a long file name) */
 }
 
 /* ---- WEEK / DAY TIME GRID ---- */
 .dn-timegrid { display: flex; flex-direction: column; border: 1px solid var(--background-modifier-border); border-radius: 8px; overflow: hidden; }
-.dn-tg-colhead { display: flex; border-bottom: 1px solid var(--background-modifier-border); }
+/* The scrollable body reserves a scrollbar gutter (below); the header and all-day rows must
+ * reserve the SAME gutter, or their columns drift out of line with the body's day columns
+ * (events then sit under the wrong day). overflow:hidden lets scrollbar-gutter apply without
+ * showing a scrollbar. */
+.dn-tg-colhead { display: flex; border-bottom: 1px solid var(--background-modifier-border); overflow: hidden; scrollbar-gutter: stable; }
 .dn-tg-corner { flex: 0 0 48px; }
 .dn-tg-dayhead {
   flex: 1 1 0;
@@ -320,7 +337,7 @@
   font-weight: 600;
 }
 
-.dn-tg-allday { display: flex; border-bottom: 1px solid var(--background-modifier-border); min-height: 24px; background: var(--background-secondary); }
+.dn-tg-allday { display: flex; border-bottom: 1px solid var(--background-modifier-border); min-height: 24px; background: var(--background-secondary); overflow: hidden; scrollbar-gutter: stable; }
 .dn-tg-allday-label { flex: 0 0 48px; font-size: var(--font-ui-smaller); color: var(--text-faint); padding: 3px 4px; text-align: right; }
 /* the cells wrapper hosts the multi-day bars overlay; cells reserve --dn-lanes rows above their chips */
 .dn-tg-allday-cells { flex: 1 1 auto; min-width: 0; position: relative; display: flex; }
@@ -369,12 +386,25 @@
   line-height: 1.25;
   cursor: pointer;
   box-shadow: var(--shadow-s);
+  /* keep every line inside the block: wrap a long word rather than run past the right edge */
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
-.dn-ev-time { display: block; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.dn-ev-title { display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
+.dn-ev-time { display: block; color: var(--text-muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+/* wrap a long word instead of letting it run past the block's right edge; the block's own
+ * overflow:hidden then clips vertically if there still isn't room (short events) */
+.dn-ev-title { display: block; font-weight: 500; overflow: hidden; overflow-wrap: anywhere; }
+/* the note under the title — muted, clipped by the block when it doesn't fit */
+.dn-ev-note { display: block; margin-top: 1px; color: var(--text-muted); font-size: calc(var(--font-ui-smaller) - 1px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .9; }
+/* [[wikilinks]] inside a description — stand out from the muted note text, open on click */
+.dn-note-link { color: var(--link-color, var(--interactive-accent)); text-decoration: none; cursor: pointer; }
+.dn-note-link:hover { text-decoration: underline; }
 .dn-ev-resize { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; cursor: ns-resize; touch-action: none; }
 .dn-ev-resize::after { content: ''; position: absolute; left: 50%; bottom: 2px; transform: translateX(-50%); width: 18px; height: 2px; border-radius: 2px; background: var(--dn-ev); opacity: 0; transition: opacity .1s; }
 .dn-ev:hover .dn-ev-resize::after { opacity: .5; }
+.dn-ev-resize-top { position: absolute; left: 0; right: 0; top: 0; height: 8px; cursor: ns-resize; touch-action: none; }
+.dn-ev-resize-top::after { content: ''; position: absolute; left: 50%; top: 2px; transform: translateX(-50%); width: 18px; height: 2px; border-radius: 2px; background: var(--dn-ev); opacity: 0; transition: opacity .1s; }
+.dn-ev:hover .dn-ev-resize-top::after { opacity: .5; }
 .dn-ev.dn-resizing { opacity: .92; z-index: 4; box-shadow: var(--shadow-m); }
 .dn-now-line { position: absolute; left: 0; right: 0; height: 2px; background: var(--color-red, #e5534b); z-index: 3; pointer-events: none; }
 .dn-now-line::before { content: ''; position: absolute; left: -3px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--color-red, #e5534b); }
@@ -485,6 +515,7 @@ textarea.dn-note-in { resize: vertical; min-height: 34px; font-family: inherit; 
 /* ---- drag to reschedule ---- */
 .dn-dragging { opacity: .55; box-shadow: var(--shadow-s); }
 body.dn-drag-active { cursor: grabbing; user-select: none; }
+body.dn-drag-active.dn-copy { cursor: copy; } /* Ctrl/Cmd held → drop leaves a copy */
 .dn-drop-target { outline: 2px dashed var(--interactive-accent); outline-offset: -2px; border-radius: 6px; background: color-mix(in srgb, var(--interactive-accent) 8%, transparent); }
 .dn-chip, .dn-ev { touch-action: none; } /* let the plugin own drag gestures on events */
 /* live snapped preview while dragging a timed event — sits exactly where the drop will land */

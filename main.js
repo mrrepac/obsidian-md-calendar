@@ -47,7 +47,7 @@ const STRINGS = {
     today: 'Today',
     prev: 'Previous',
     next: 'Next',
-    timePlaceholder: 'time — e.g. 1530',
+    timePlaceholder: 'time — e.g. 1530, or 15-18 for a range',
     v_month: 'Month',
     v_week: 'Week',
     v_day: 'Day',
@@ -62,7 +62,7 @@ const STRINGS = {
     allDay: 'All-day',
     more: '+{0} more',
     noEvents: 'No events this day.',
-    gridNav: 'Calendar grid. Arrows or WASD move the selection (W/S walk the hours in week/day), Q/E switch views, PageUp/PageDown months, Enter or Space adds an event, T jumps to today',
+    gridNav: 'Calendar grid. Arrows or WASD move the selection (W/S walk the hours in week/day), Q/E switch views, PageUp/PageDown months, Enter or Space adds an event, T jumps to today, G goes to a date',
     newEvent: 'New event',
     editEvent: 'Edit event',
     e_title: 'Title',
@@ -75,7 +75,7 @@ const STRINGS = {
     e_event: 'Event',
     e_task: 'Task',
     e_color: 'Color',
-    e_note: 'Note',
+    e_note: 'Description',
     e_until: 'Until',
     e_orTimes: 'or times:',
     r_until: ' — until {0}',
@@ -92,7 +92,7 @@ const STRINGS = {
     quickTaskHint: 'A task — Enter to add it (no time).',
     moreOptions: 'More options…',
     placeHint: 'Pick a day for “{0}” — click, or arrow keys + Enter/Space',
-    placeTimeHint: 'Time on {0} — e.g. 1500, Enter to add (empty = all-day)',
+    placeTimeHint: 'Time on {0} — e.g. 1500 or 15-18, Enter to add (empty = all-day)',
     placeCancel: 'Cancel placement',
     r_none: 'No repeat',
     r_daily: 'Every day',
@@ -108,11 +108,16 @@ const STRINGS = {
     u_year: 'years',
     m_edit: 'Edit',
     m_duplicate: 'Duplicate',
+    m_color: 'Color',
     m_delete: 'Delete',
     m_deleteSeries: 'Delete series',
     m_skip: 'Delete this occurrence',
     m_done: 'Mark done',
     m_undone: 'Mark not done',
+    goToDate: 'Go to date',
+    goBtn: 'Go',
+    movedOut: 'Occurrence moved out of the series.',
+    copied: 'Copied.',
     cancel: 'Cancel',
     badJson: 'This calendar block contains invalid JSON and cannot be displayed.',
     repair: 'Reset block',
@@ -130,7 +135,7 @@ const STRINGS = {
     today: 'Сегодня',
     prev: 'Назад',
     next: 'Вперёд',
-    timePlaceholder: 'время — напр. 1530',
+    timePlaceholder: 'время — напр. 1530 или 15-18 для диапазона',
     v_month: 'Месяц',
     v_week: 'Неделя',
     v_day: 'День',
@@ -145,7 +150,7 @@ const STRINGS = {
     allDay: 'Весь день',
     more: 'ещё {0}',
     noEvents: 'В этот день событий нет.',
-    gridNav: 'Сетка календаря. Стрелки или WASD двигают указатель (W/S — часы в неделе/дне), Q/E — переключение вида, PageUp/PageDown — месяцы, Enter/пробел — новое событие, T — сегодня',
+    gridNav: 'Сетка календаря. Стрелки или WASD двигают указатель (W/S — часы в неделе/дне), Q/E — переключение вида, PageUp/PageDown — месяцы, Enter/пробел — новое событие, T — сегодня, G — переход к дате',
     newEvent: 'Новое событие',
     editEvent: 'Изменить событие',
     e_title: 'Название',
@@ -158,7 +163,7 @@ const STRINGS = {
     e_event: 'Событие',
     e_task: 'Задача',
     e_color: 'Цвет',
-    e_note: 'Заметка',
+    e_note: 'Описание',
     e_until: 'До даты',
     e_orTimes: 'или раз:',
     r_until: ' — до {0}',
@@ -175,7 +180,7 @@ const STRINGS = {
     quickTaskHint: 'Задача — Enter, чтобы добавить (без времени).',
     moreOptions: 'Подробнее…',
     placeHint: 'Выберите день для «{0}» — клик или стрелки + Enter/пробел',
-    placeTimeHint: 'Время на {0} — напр. 1500, Enter — добавить (пусто = весь день)',
+    placeTimeHint: 'Время на {0} — напр. 1500 или 15-18, Enter — добавить (пусто = весь день)',
     placeCancel: 'Отменить размещение',
     r_none: 'Без повтора',
     r_daily: 'Каждый день',
@@ -191,11 +196,16 @@ const STRINGS = {
     u_year: 'г.',
     m_edit: 'Изменить',
     m_duplicate: 'Дублировать',
+    m_color: 'Цвет',
     m_delete: 'Удалить',
     m_deleteSeries: 'Удалить всю серию',
     m_skip: 'Удалить это вхождение',
     m_done: 'Отметить выполненным',
     m_undone: 'Снять отметку',
+    goToDate: 'Перейти к дате',
+    goBtn: 'Перейти',
+    movedOut: 'Вхождение перенесено из серии.',
+    copied: 'Скопировано.',
     cancel: 'Отмена',
     badJson: 'В этом блоке календаря некорректный JSON, его нельзя отобразить.',
     repair: 'Сбросить блок',
@@ -309,6 +319,23 @@ function parseCompactTime(s) {
   } else { hh = Number(d.slice(0, 2)); mm = Number(d.slice(2, 4)); }
   if (hh > 23 || mm > 59) return null;
   return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+}
+
+/* Parse a time entry that may be a RANGE: a hyphen / en-dash / em-dash splits start from end —
+ * "15-18" → {start:'15:00', end:'18:00'}, "1500-1800" and "9:00-10:30" likewise. A lone time —
+ * "1518", "15:18", "15" — is a start only (":" and bare digits never mean a range): {start,end:null}.
+ * null if the start doesn't parse. An end that isn't after the start is dropped (normalizeEvent
+ * would rewrite it to start+duration anyway). */
+function parseTimeRange(s) {
+  const str = String(s == null ? '' : s).trim();
+  const parts = str.split(/\s*[-–—]\s*/);
+  if (parts.length === 2 && parts[0] && parts[1]) {
+    const start = parseCompactTime(parts[0]);
+    const end = parseCompactTime(parts[1]);
+    if (start) return { start, end: (end && timeToMin(end) > timeToMin(start)) ? end : null };
+  }
+  const start = parseCompactTime(str);
+  return start ? { start, end: null } : null;
 }
 
 function timeToMin(hhmm) {
@@ -1114,7 +1141,9 @@ class CalendarRenderer {
     // wildly between views («Июль 2026» vs «29 Июня – 5 Июля 2026»), so anything sharing
     // its row would jump on every view switch — and the block's top-right corner stays
     // free for Obsidian's own edit-block button.
-    head.createDiv({ cls: 'dn-period', text: periodLabel(v.view, moment(v.anchor, 'YYYY-MM-DD')) });
+    const periodEl = head.createDiv({ cls: 'dn-period', text: periodLabel(v.view, moment(v.anchor, 'YYYY-MM-DD')), attr: { role: 'button', tabindex: '0', 'aria-label': t('goToDate') } });
+    periodEl.addEventListener('click', () => this.openGoToDate());
+    periodEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.openGoToDate(); } });
 
     const nav = head.createDiv({ cls: 'dn-nav' });
     this.iconBtn(nav, 'chevron-left', t('prev'), () => { v.anchor = navStep(v.view, moment(v.anchor, 'YYYY-MM-DD'), -1).format('YYYY-MM-DD'); this.render(); });
@@ -1209,8 +1238,9 @@ class CalendarRenderer {
           if (e.key === 'Enter') {
             e.preventDefault();
             const val = timeInput.value.trim();
-            if (val && !parseCompactTime(val)) return; // invalid — let them fix it
-            this.commitPlace(val ? parseCompactTime(val) : null); // empty = all-day
+            if (val && !parseTimeRange(val)) return; // invalid — let them fix it
+            const r = val ? parseTimeRange(val) : null; // "15-18" → start + end; empty = all-day
+            this.commitPlace(r ? r.start : null, r ? r.end : null);
           } else if (e.key === 'Escape') { e.preventDefault(); p.timing = false; this.render(); } // back to day nav
         });
       }
@@ -1271,13 +1301,13 @@ class CalendarRenderer {
     this.render();
   }
 
-  commitPlace(start) {
+  commitPlace(start, end) {
     const v = this.view();
     const p = v.pending;
     if (!p) return;
     v.pending = null;
     v.focusAddUntil = Date.now() + 600;
-    this.addEvent({ title: p.title, date: p.cursor || v.anchor || isoToday(), start: p.task ? null : (start || null), repeat: p.repeat, task: p.task });
+    this.addEvent({ title: p.title, date: p.cursor || v.anchor || isoToday(), start: p.task ? null : (start || null), end: p.task ? null : (end || null), repeat: p.repeat, task: p.task });
   }
 
   /* Document-level key nav while picking the day (the add input is kept focused as the anchor). */
@@ -1364,6 +1394,7 @@ class CalendarRenderer {
         const start = (timeGrid && typeof v.selSlot === 'number') ? String(v.selSlot).padStart(2, '0') + ':00' : null;
         this.openQuickCreate(v.anchor, start ? { start } : undefined);
       } else if (code === 'KeyT') this.goToday();
+      else if (code === 'KeyG') this.openGoToDate();
       else if (k === 'Escape') grid.blur();
       else handled = false;
       if (handled) { e.preventDefault(); e.stopPropagation(); }
@@ -1438,6 +1469,23 @@ class CalendarRenderer {
     v.selSlot = null;
     this.render();
     if (this._gridEl) this._gridEl.focus({ preventScroll: true });
+  }
+
+  /* Jump the current view to an arbitrary ISO date (the header title / the G key), so reaching
+   * a date months away doesn't mean clicking ‹ › a dozen times. Mirrors goToday's state reset. */
+  goToDate(iso) {
+    if (!iso) return;
+    const v = this.view();
+    v.anchor = iso;
+    v.selDom = moment(iso, 'YYYY-MM-DD').date();
+    v.selSlot = null;
+    this.render();
+    if (this._gridEl) this._gridEl.focus({ preventScroll: true });
+  }
+
+  openGoToDate() {
+    if (this.view().pending) return; // placement mode owns the flow
+    new GoToDateModal(this.app, this).open();
   }
 
   moveSelection(days) {
@@ -1570,6 +1618,13 @@ class CalendarRenderer {
     });
     this.attachItemMenu(bar, g.it, true);
     this.enableEventDrag(bar, g.it, 'date');
+    // Resize a multi-day span by its ends — but only on a REAL end (not a clip where it continues
+    // into the next week/out of view) and not for a recurring span (its occurrences are edited).
+    // Left handle moves the start date, right handle moves the end date; each snaps to a day cell.
+    if (!g.it.repeat && !IS_MOBILE()) {
+      if (!g.clipL) this.enableSpanResize(makeSpanHandle(bar, 'l'), g.it, 'l');
+      if (!g.clipR) this.enableSpanResize(makeSpanHandle(bar, 'r'), g.it, 'r');
+    }
     return bar;
   }
 
@@ -1596,9 +1651,10 @@ class CalendarRenderer {
   }
 
   buildChip(parent, it, dragKind) {
-    // Month view: a colored dot + title only (no time — it clutters the narrow cell). The exact
-    // time stays in the hover tooltip and in the week/day/agenda views. Tasks get a checkbox
-    // instead of the dot so you can tick them off right in the grid.
+    // Month view: a compact lead + title. A timed event shows its START HOUR in place of the
+    // dot (14:00 → "14") — the colored number keeps the color cue AND tells the time at a glance;
+    // an all-day event keeps a plain colored dot; a task gets a checkbox so you can tick it here.
+    // The full time/note still live in the hover tooltip.
     // aria-label ONLY (Obsidian shows its styled tooltip for it) — adding title too would
     // stack the native tooltip on top of it. The note joins with a dash: Obsidian's tooltip
     // doesn't render newlines.
@@ -1606,6 +1662,7 @@ class CalendarRenderer {
       + (it.note ? ' — ' + it.note : ''); // the note lives in the tooltip — the cell is too narrow to show it
     const chip = parent.createDiv({ cls: this.itemCls('dn-chip', it), attr: { 'aria-label': full } }); // hover/AT = full text (dot chips have no other label)
     if (it.task) this.buildCheck(chip, it, 'dn-chip-check');
+    else if (!it.allDay && it.start) chip.createSpan({ cls: 'dn-chip-hour', text: String(Number(it.start.slice(0, 2))) }); // start hour, no leading zero
     else chip.createSpan({ cls: 'dn-chip-dot' });
     chip.createSpan({ cls: 'dn-chip-title', text: it.title || '…' });
     chip.addEventListener('click', (e) => {
@@ -1693,7 +1750,7 @@ class CalendarRenderer {
     const time = row.createSpan({ cls: 'dn-ag-time', text: it.allDay ? t('allDay') : (it.start + (it.end ? '–' + it.end : '')) });
     const main = row.createDiv({ cls: 'dn-ag-main' });
     main.createDiv({ cls: 'dn-ag-title', text: it.title || '…' });
-    if (it.note) main.createDiv({ cls: 'dn-ag-note', text: it.note, attr: { 'aria-label': it.note } });
+    if (it.note) this.renderNoteText(main.createDiv({ cls: 'dn-ag-note' }), it.note); // shown in full (multi-line) so its links are clickable — no tooltip needed
     // In placement mode a click anywhere on the row means "this day" (dayIso, not it.date —
     // a multi-day span's row can sit on a later day than the span start).
     const open = (e) => {
@@ -1703,7 +1760,53 @@ class CalendarRenderer {
     };
     main.addEventListener('click', open);
     row.addEventListener('click', (e) => { if (e.target === row || e.target === time) open(e); });
-    this.attachItemMenu(row, it, false); // agenda rows aren't drag sources — menu stays on mobile
+    // Desktop: drag a row onto a day in the mini calendar to reschedule it (same 'date' drag as a
+    // month chip; the grab day is THIS row's day, so a span shifts by the day you grabbed). On mobile
+    // the row stays a plain menu source — dragging onto tiny mini-cells by long-press isn't worth it.
+    const draggable = !IS_MOBILE();
+    if (draggable) row.dataset.iso = dayIso || it.date; // grab day for the drag delta
+    this.attachItemMenu(row, it, draggable);
+    if (draggable) this.enableEventDrag(row, it, 'date');
+  }
+
+  /* Render an event's description, turning links into clickable elements (the rest stays plain
+   * text). Two forms, both "links in square brackets": a wiki link [[Note]] / [[Note#heading]] /
+   * [[Note|alias]], and a markdown link [label](target) — an http(s)/mailto target opens in the
+   * browser, anything else opens as a vault note. A click opens the link and never bubbles up to
+   * the row/block (which would open the editor); links are excluded from drag too (see
+   * enableEventDrag), so tapping one always follows it. */
+  renderNoteText(parent, note) {
+    // Alternation: [[wiki]]  OR  [label](target). Non-link "[x]" text is left untouched. The
+    // markdown target allows spaces (note names) but not parens, so it stops at its own ")".
+    const re = /\[\[([^\[\]]+)\]\]|\[([^\[\]]*)\]\(([^()]+)\)/g;
+    let last = 0, m;
+    while ((m = re.exec(note))) {
+      if (m.index > last) parent.appendText(note.slice(last, m.index));
+      if (m[1] != null) {
+        const inner = m[1];
+        const bar = inner.indexOf('|');
+        const linktext = (bar >= 0 ? inner.slice(0, bar) : inner).trim(); // "Note" or "Note#heading"
+        const label = (bar >= 0 ? inner.slice(bar + 1).trim() : '') || linktext;
+        this._noteLink(parent, label, (e) => { if (linktext) this.app.workspace.openLinkText(linktext, this.ctx.sourcePath || '', e.ctrlKey || e.metaKey); });
+      } else {
+        const target = (m[3] || '').trim();
+        const label = (m[2] || '').trim() || target;
+        const external = /^[a-z][a-z0-9+.-]*:/i.test(target); // has a scheme (http:, https:, mailto:, obsidian:)
+        this._noteLink(parent, label, (e) => {
+          if (!target) return;
+          if (external) window.open(target, '_blank');
+          else this.app.workspace.openLinkText(target, this.ctx.sourcePath || '', e.ctrlKey || e.metaKey);
+        });
+      }
+      last = m.index + m[0].length;
+    }
+    if (last < note.length) parent.appendText(note.slice(last));
+  }
+
+  _noteLink(parent, label, onClick) {
+    const a = parent.createEl('a', { cls: 'internal-link dn-note-link', text: label });
+    a.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); onClick(e); });
+    return a;
   }
 
   /* ---- WEEK / DAY TIME GRID ---- */
@@ -1788,9 +1891,9 @@ class CalendarRenderer {
       const laid = layoutTimedEvents(timed, dayStartMin, dayEndMin, CFG.defaultDur);
       for (const it of laid) {
         const L = it._layout;
-        // Narrow columns clip the title, and the note isn't drawn in the block at all —
-        // hover carries the full text (same convention as the month chips: aria-label only,
-        // so a single Obsidian tooltip, never the native one stacked on top).
+        // The note now shows inside the block (a muted line under the title) when it fits — the
+        // block clips it and the hover tooltip still carries the full text (aria-label only, so a
+        // single Obsidian tooltip, never the native one stacked on top).
         const tip = (it.start + (it.end ? '–' + it.end : '') + ' ' + (it.title || '')).trim()
           + (it.note ? ' — ' + it.note : '');
         const block = col.createDiv({ cls: this.itemCls('dn-ev', it), attr: { 'aria-label': tip } });
@@ -1800,6 +1903,7 @@ class CalendarRenderer {
         block.style.width = 'calc(' + L.widthPct + '% - 3px)';
         block.createSpan({ cls: 'dn-ev-time', text: it.start + (it.end ? '–' + it.end : '') });
         block.createSpan({ cls: 'dn-ev-title', text: it.title || '…' });
+        if (it.note) this.renderNoteText(block.createSpan({ cls: 'dn-ev-note' }), it.note);
         block.addEventListener('click', (e) => {
           e.stopPropagation();
           // Placement mode: treat a click on a covering block as a click on its day column.
@@ -1809,6 +1913,8 @@ class CalendarRenderer {
         this.attachItemMenu(block, it, true);
         this.enableEventDrag(block, it, 'timed');
         if (!it.repeat) { // recurring events are edited via the editor, not resized per-occurrence
+          const topHandle = block.createDiv({ cls: 'dn-ev-resize-top', attr: { 'aria-label': t('e_time') } });
+          this.enableEventResizeTop(block, topHandle, it, dayStartMin, dayEndMin);
           const handle = block.createDiv({ cls: 'dn-ev-resize', attr: { 'aria-label': t('e_end') } });
           this.enableEventResize(block, handle, it, dayStartMin, dayEndMin);
         }
@@ -1823,10 +1929,15 @@ class CalendarRenderer {
       }
     }
 
-    // scroll so the working day — or the keyboard slot cursor — is in view
+    // scroll so the keyboard slot cursor — else the current hour when today is on screen, else
+    // the top of the working day — is in view. The slot cursor and "now" get centered; the plain
+    // 8:00 fallback just sits near the top.
     const totalMin = dayEndMin - dayStartMin;
-    const focusMin = (typeof v.selSlot === 'number') ? v.selSlot * 60 : Math.max(dayStartMin, 8 * 60);
-    const pad = (typeof v.selSlot === 'number') ? Math.max(20, scroll.clientHeight / 2 - 22) : 20;
+    const nowMin = moment().hours() * 60 + moment().minutes();
+    const showsNow = this._timeGridInfo.cols.has(todayIso) && nowMin >= dayStartMin && nowMin <= dayEndMin;
+    const centered = (typeof v.selSlot === 'number') || showsNow;
+    const focusMin = (typeof v.selSlot === 'number') ? v.selSlot * 60 : (showsNow ? nowMin : Math.max(dayStartMin, 8 * 60));
+    const pad = centered ? Math.max(20, scroll.clientHeight / 2 - 22) : 20;
     scroll.scrollTop = Math.max(0, ((focusMin - dayStartMin) / totalMin) * inner.clientHeight - pad);
   }
 
@@ -1942,6 +2053,22 @@ class CalendarRenderer {
     menu.addItem((i) => i.setTitle(it.done ? t('m_undone') : t('m_done')).setIcon(it.done ? 'rotate-ccw' : 'check').onClick(() => this.toggleDone(it)));
     menu.addItem((i) => i.setTitle(t('m_edit')).setIcon('pencil').onClick(() => { const ev = find(this.model, it.baseId); if (ev) this.openEditor(ev); }));
     menu.addItem((i) => i.setTitle(t('m_duplicate')).setIcon('copy').onClick(() => this.duplicateEvent(it)));
+    // Quick recolor without opening the full editor. Submenu where supported (Obsidian ≥ 1.4),
+    // else fall through to the editor — the color picker lives there too.
+    menu.addItem((i) => {
+      i.setTitle(t('m_color')).setIcon('palette');
+      if (typeof i.setSubmenu === 'function') {
+        const sub = i.setSubmenu();
+        for (const key of COLOR_KEYS) {
+          sub.addItem((si) => si
+            .setTitle(t('c_' + key))
+            .setChecked((it.color || 'default') === key)
+            .onClick(() => this.setEventColor(it, key === 'default' ? null : key)));
+        }
+      } else {
+        i.onClick(() => { const ev = find(this.model, it.baseId); if (ev) this.openEditor(ev); });
+      }
+    });
     menu.addSeparator();
     // A recurring occurrence can be deleted alone (an EXDATE-style skip) — the vacation case:
     // drop two weeks of gym sessions without touching the series before and after.
@@ -1959,6 +2086,62 @@ class CalendarRenderer {
       set.add(it.date);
       ev.skip = Array.from(set).sort();
     });
+  }
+
+  setEventColor(it, color) {
+    this.mutate((m) => { const ev = find(m, it.baseId); if (ev) ev.color = color; });
+  }
+
+  /* Move ONE occurrence of a repeating event (dragging it in the grid, desktop only): skip the
+   * original date and drop a standalone one-off at the new spot. Simpler and safer than an
+   * in-series override — the moved copy is an ordinary event you can drag/edit/delete as usual,
+   * and the rest of the series is untouched. `fields` carries the new date/start/end/endDate. */
+  detachOccurrence(it, fields) {
+    this.mutate((m) => {
+      const ev = find(m, it.baseId);
+      if (!ev || !ev.repeat || !it.date) return;
+      const set = new Set(ev.skip || []);
+      set.add(it.date); // EXDATE the occurrence at its original date
+      ev.skip = Array.from(set).sort();
+      const copy = normalizeEvent({
+        title: it.title,
+        task: it.task,
+        date: fields.date,
+        start: it.task ? null : fields.start,
+        end: it.task ? null : fields.end,
+        endDate: fields.endDate || null,
+        note: it.note,
+        color: it.color,
+      });
+      const idx = m.events.findIndex((x) => x.id === ev.id);
+      m.events.splice(idx < 0 ? m.events.length : idx + 1, 0, copy);
+      m.events.forEach((x, i) => { x.order = i; });
+    });
+    new Notice(t('movedOut'));
+  }
+
+  /* Ctrl/Cmd-drag: drop a standalone copy at `fields`, leaving the source (and any series) exactly
+   * as it was — same body (title/kind/note/color), fresh identity, no repeat. Works from any drag
+   * source (month day, all-day gutter, week/day time grid). A recurring source copies just the one
+   * occurrence; the series keeps ALL its dates (unlike a plain drag, which detaches). */
+  copyEventTo(it, fields) {
+    this.mutate((m) => {
+      const src = find(m, it.baseId);
+      const copy = normalizeEvent({
+        title: it.title,
+        task: it.task,
+        date: fields.date,
+        start: it.task ? null : fields.start,
+        end: it.task ? null : fields.end,
+        endDate: fields.endDate || null,
+        note: it.note,
+        color: it.color,
+      });
+      const idx = src ? m.events.findIndex((x) => x.id === src.id) : -1;
+      m.events.splice(idx < 0 ? m.events.length : idx + 1, 0, copy);
+      m.events.forEach((x, i) => { x.order = i; });
+    });
+    new Notice(t('copied'));
   }
 
   duplicateEvent(it) {
@@ -1996,15 +2179,16 @@ class CalendarRenderer {
     });
   }
 
-  /* ---- drag to reschedule (non-recurring events only) ---- */
+  /* ---- drag to reschedule ---- */
   /* kind 'date' (month cell / all-day gutter) moves only the date; kind 'timed' (week/day
-   * grid block) moves date + start time, snapped to 30 min and preserving duration. Recurring
-   * events aren't draggable (which occurrence would move is ambiguous). */
+   * grid block) moves date + start time, snapped to 30 min and preserving duration. Dragging a
+   * RECURRING occurrence detaches just that one (desktop only — on mobile a long-press already
+   * owns the context menu, the only touch path to "delete this occurrence"). */
   enableEventDrag(el, it, kind) {
-    if (it.repeat) return;
+    if (it.repeat && IS_MOBILE()) return; // touch: long-press = menu, not drag (see attachItemMenu)
     el.addEventListener('pointerdown', (e) => {
       if (e.button !== 0 && e.pointerType === 'mouse') return;
-      if (e.target.closest('.dn-check, .dn-ev-resize')) return; // the checkbox / resize handle own their press
+      if (e.target.closest('.dn-check, .dn-ev-resize, .dn-ev-resize-top, .dn-mbar-resize, .dn-note-link')) return; // the checkbox / resize handles / a link own their press
       // The day whose chip was grabbed — for a multi-day span the same instance is shown on
       // every covered day, so the delta must be measured from THIS day, not the span start.
       const grabCell = el.closest('[data-iso]');
@@ -2028,6 +2212,7 @@ class CalendarRenderer {
         if (pressTimer) clearTimeout(pressTimer);
         el.removeClass('dn-dragging');
         document.body.removeClass('dn-drag-active');
+        document.body.removeClass('dn-copy');
         clearTarget();
         clearGhost();
         this._activeDrags.delete(cleanup);
@@ -2037,7 +2222,7 @@ class CalendarRenderer {
       const cellAt = (x, y) => {
         const sel = kind === 'timed'
           ? '.dn-tg-col[data-iso]'
-          : '.dn-day[data-iso], .dn-tg-allday-cell[data-iso], .dn-tg-col[data-iso]';
+          : '.dn-day[data-iso], .dn-tg-allday-cell[data-iso], .dn-tg-col[data-iso], .dn-ag2-cell[data-iso]';
         for (const c of this.el.querySelectorAll(sel)) {
           const r = c.getBoundingClientRect();
           if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return c;
@@ -2051,6 +2236,7 @@ class CalendarRenderer {
         if (!armed) { if (dx > 8 || dy > 8) cleanup(); return; } // moved before long-press → a scroll
         if (!dragging) { if (dx < 6 && dy < 6) return; begin(); }
         ev.preventDefault();
+        document.body.toggleClass('dn-copy', !!(ev.ctrlKey || ev.metaKey)); // Ctrl/Cmd held → copy cursor
         clearTarget();
         const cell = cellAt(ev.clientX, ev.clientY);
         if (cell) { cell.addClass('dn-drop-target'); lastTarget = cell; }
@@ -2077,14 +2263,15 @@ class CalendarRenderer {
         const was = dragging;
         const cell = was ? cellAt(ev.clientX, ev.clientY) : null;
         const dropY = ev.clientY;
+        const copy = !!(ev.ctrlKey || ev.metaKey); // Ctrl/Cmd on release → copy, leaving the original
         cleanup();
         if (!was) return; // it was a tap/click — let the normal click handler run
         const swallow = (ce) => { ce.stopPropagation(); ce.preventDefault(); };
         document.addEventListener('click', swallow, true);
         setTimeout(() => document.removeEventListener('click', swallow, true), 0);
         if (!cell) return;
-        if (kind === 'timed') this.dropTimed(it, cell, cell.dataset.iso, dropY);
-        else this.dropDate(it, grabIso, cell.dataset.iso);
+        if (kind === 'timed') this.dropTimed(it, cell, cell.dataset.iso, dropY, copy);
+        else this.dropDate(it, grabIso, cell.dataset.iso, copy);
       };
 
       if (isTouch) pressTimer = setTimeout(() => { armed = true; begin(); }, 350);
@@ -2095,17 +2282,32 @@ class CalendarRenderer {
     });
   }
 
-  dropDate(it, grabIso, targetIso) {
+  dropDate(it, grabIso, targetIso, copy) {
     if (!targetIso || targetIso === grabIso) return;
     // rounded fractional diff: on a DST transition day the integer diff truncates 0.96 → 0
     // and the drop would silently do nothing.
     const delta = Math.round(moment(targetIso, 'YYYY-MM-DD').diff(moment(grabIso, 'YYYY-MM-DD'), 'days', true));
     if (!delta) return;
+    const newDate = moment(it.date, 'YYYY-MM-DD').add(delta, 'day').format('YYYY-MM-DD');
+    const newEndDate = it.endDate ? moment(it.endDate, 'YYYY-MM-DD').add(delta, 'day').format('YYYY-MM-DD') : null;
+    // Ctrl/Cmd: drop a standalone copy, leaving the original (and any series) untouched.
+    if (copy) {
+      this.copyEventTo(it, { date: newDate, start: it.start, end: it.end, endDate: newEndDate });
+      return;
+    }
+    // A recurring occurrence detaches to a standalone event instead of dragging the whole series.
+    if (it.repeat) {
+      this.detachOccurrence(it, { date: newDate, start: it.start, end: it.end, endDate: newEndDate });
+      return;
+    }
     this.mutate((m) => {
       const ev = find(m, it.baseId);
       if (!ev) return;
-      ev.date = moment(ev.date, 'YYYY-MM-DD').add(delta, 'day').format('YYYY-MM-DD');
-      if (ev.endDate) ev.endDate = moment(ev.endDate, 'YYYY-MM-DD').add(delta, 'day').format('YYYY-MM-DD');
+      // Move relative to the SHOWN instance (it.date), not the base date: a carried-forward overdue
+      // task renders on today while its base date sits in the past — dragging it must land on the
+      // target day, not apply today's delta to the old date. For normal events it.date == ev.date.
+      ev.date = newDate;
+      if (ev.endDate) ev.endDate = newEndDate || ev.endDate;
     });
   }
 
@@ -2126,10 +2328,20 @@ class CalendarRenderer {
     return { dayStartMin, range, startMin, dur, hadEnd, start: minToTime(startMin), end: minToTime(startMin + dur) };
   }
 
-  dropTimed(it, cell, targetIso, clientY) {
+  dropTimed(it, cell, targetIso, clientY, copy) {
     const spot = this.timedDropSpot(it, cell, clientY);
     const newEndStr = spot.hadEnd ? spot.end : null;
-    if (targetIso === it.date && spot.start === it.start && (!spot.hadEnd || newEndStr === it.end)) return;
+    if (!copy && targetIso === it.date && spot.start === it.start && (!spot.hadEnd || newEndStr === it.end)) return;
+    // Ctrl/Cmd: drop a standalone copy, leaving the original (and any series) untouched.
+    if (copy) {
+      this.copyEventTo(it, { date: targetIso, start: spot.start, end: newEndStr, endDate: null });
+      return;
+    }
+    // A recurring occurrence detaches to a standalone event instead of dragging the whole series.
+    if (it.repeat) {
+      this.detachOccurrence(it, { date: targetIso, start: spot.start, end: newEndStr, endDate: null });
+      return;
+    }
     this.mutate((m) => {
       const ev = find(m, it.baseId);
       if (!ev) return;
@@ -2273,6 +2485,150 @@ class CalendarRenderer {
     });
   }
 
+  /* Drag the TOP edge of a timed block (week/day) to change its start time, keeping the end put.
+   * Mirror of enableEventResize: snaps to the grid step, keeps at least one step of duration, and
+   * never starts before the day window. Live-previews both top and height. */
+  enableEventResizeTop(block, handle, it, dayStartMin, dayEndMin) {
+    if (it.repeat) return; // like move-drag, don't let one occurrence silently resize the whole series
+    handle.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      e.preventDefault();
+      e.stopPropagation(); // don't also start the block's move-drag
+      const pointerId = e.pointerId; // only THIS pointer drives the resize (multi-touch safe)
+      const col = block.parentElement; // .dn-tg-col — its box maps Y → minutes
+      if (!col) return;
+      const range = Math.max(1, dayEndMin - dayStartMin);
+      const endMin = it.end != null ? timeToMin(it.end) : ((timeToMin(it.start) || 0) + CFG.defaultDur);
+      let startMin = timeToMin(it.start);
+      if (startMin == null || endMin == null) return;
+      let moved = false;
+
+      block.addClass('dn-resizing');
+      document.body.addClass('dn-drag-active');
+
+      const compute = (clientY) => {
+        const r = col.getBoundingClientRect();
+        const frac = Math.max(0, Math.min(1, (clientY - r.top) / r.height));
+        const m = Math.round((dayStartMin + frac * range) / CFG.snap) * CFG.snap; // snap to the grid step
+        // Floor at the day start, cap one step below the (fixed) end — the ordering keeps a
+        // real one-step block even when the end sits within a step of the day start.
+        return Math.max(dayStartMin, Math.min(endMin - CFG.snap, m));
+      };
+      const cleanup = () => {
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+        document.removeEventListener('pointercancel', onUp);
+        block.removeClass('dn-resizing');
+        document.body.removeClass('dn-drag-active');
+        this._activeDrags.delete(cleanup);
+      };
+      const onMove = (ev) => {
+        if (ev.pointerId !== pointerId) return; // ignore a second finger's stream
+        moved = true;
+        startMin = compute(ev.clientY);
+        block.style.top = ((startMin - dayStartMin) / range) * 100 + '%'; // live preview: top…
+        block.style.height = ((endMin - startMin) / range) * 100 + '%';   // …and height follow
+      };
+      const onUp = (ev) => {
+        if (ev && ev.pointerId !== pointerId) return; // this gesture only ends with its own pointer
+        cleanup();
+        // swallow the click that fires right after the drag so it doesn't open the editor
+        const swallow = (ce) => { ce.stopPropagation(); ce.preventDefault(); };
+        document.addEventListener('click', swallow, true);
+        setTimeout(() => document.removeEventListener('click', swallow, true), 0);
+        if (!moved) return;
+        if (endMin - startMin < CFG.snap) return;
+        const startStr = minToTime(startMin);
+        if (startStr === it.start) return;
+        // Commit the end too: it may have been materialized from the default when it.end was null.
+        const endStr = minToTime(endMin);
+        this.mutate((m) => { const ev = find(m, it.baseId); if (ev) { ev.start = startStr; ev.end = endStr; } });
+      };
+      this._activeDrags.add(cleanup);
+      document.addEventListener('pointermove', onMove, { passive: false });
+      document.addEventListener('pointerup', onUp);
+      document.addEventListener('pointercancel', onUp);
+    });
+  }
+
+  /* Resize a multi-day span (month grid / all-day gutter) by dragging one of its ends across day
+   * cells: 'l' moves the start date, 'r' the end date. It snaps to whatever day cell the pointer
+   * is over and never passes the opposite end (dragged too far, it clamps there). Desktop only,
+   * non-recurring only — wired up in makeSpanBar on the REAL (unclipped) end of the bar. */
+  enableSpanResize(handle, it, edge) {
+    handle.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      e.preventDefault();
+      e.stopPropagation(); // don't also start the bar's move-drag
+      const pointerId = e.pointerId;
+      const bar = handle.closest('.dn-mbar');
+      let moved = false, targetIso = null, lastCell = null;
+      document.body.addClass('dn-drag-active');
+      if (bar) bar.addClass('dn-resizing');
+      const clearCell = () => { if (lastCell) { lastCell.removeClass('dn-drop-target'); lastCell = null; } };
+      const dayCellAt = (x, y) => {
+        for (const c of this.el.querySelectorAll('.dn-day[data-iso], .dn-tg-allday-cell[data-iso]')) {
+          const r = c.getBoundingClientRect();
+          if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return c;
+        }
+        return null;
+      };
+      const cleanup = () => {
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+        document.removeEventListener('pointercancel', onUp);
+        document.body.removeClass('dn-drag-active');
+        if (bar) bar.removeClass('dn-resizing');
+        clearCell();
+        this._activeDrags.delete(cleanup);
+      };
+      const onMove = (ev) => {
+        if (ev.pointerId !== pointerId) return;
+        moved = true;
+        ev.preventDefault();
+        clearCell();
+        const cell = dayCellAt(ev.clientX, ev.clientY);
+        if (cell) { targetIso = cell.dataset.iso; cell.addClass('dn-drop-target'); lastCell = cell; }
+      };
+      const onUp = (ev) => {
+        if (ev && ev.pointerId !== pointerId) return;
+        const drop = targetIso;
+        cleanup();
+        const swallow = (ce) => { ce.stopPropagation(); ce.preventDefault(); };
+        document.addEventListener('click', swallow, true);
+        setTimeout(() => document.removeEventListener('click', swallow, true), 0);
+        if (!moved || !drop) return;
+        this.resizeSpan(it, edge, drop);
+      };
+      this._activeDrags.add(cleanup);
+      document.addEventListener('pointermove', onMove, { passive: false });
+      document.addEventListener('pointerup', onUp);
+      document.addEventListener('pointercancel', onUp);
+    });
+  }
+
+  resizeSpan(it, edge, targetIso) {
+    this.mutate((m) => {
+      const ev = find(m, it.baseId);
+      if (!ev || !ev.endDate || !targetIso) return;
+      if (edge === 'l') {
+        if (targetIso > ev.endDate) targetIso = ev.endDate; // can't pass the end — clamp to it
+        if (targetIso === ev.date) return;
+        ev.date = targetIso;
+      } else {
+        if (targetIso < ev.date) targetIso = ev.date; // can't pass the start — clamp to it
+        if (targetIso === ev.endDate) return;
+        ev.endDate = targetIso;
+      }
+      if (ev.endDate && ev.endDate <= ev.date) ev.endDate = null; // collapsed → an ordinary one-day event
+    });
+  }
+
+}
+
+/* A thin grab strip on one end of a span bar (left = start, right = end). */
+function makeSpanHandle(bar, edge) {
+  return bar.createDiv({ cls: 'dn-mbar-resize dn-mbar-resize-' + edge });
 }
 
 function weekDayList(anchorIso) {
@@ -2508,7 +2864,10 @@ class EventModal extends Modal {
     const spacer = foot.createDiv({ cls: 'dn-foot-spacer' });
     foot.createEl('button', { text: t('cancel') }).addEventListener('click', () => this.close());
     const save = foot.createEl('button', { cls: 'mod-cta', text: t('save') });
+    let committed = false; // plain Enter and the button can both fire — never save (or add) twice
     const commit = () => {
+      if (committed) return;
+      committed = true;
       const noTime = state.task || state.allDay;
       const fields = {
         title: state.title.trim(),
@@ -2566,7 +2925,20 @@ class EventModal extends Modal {
       this.close();
     };
     save.addEventListener('click', commit);
-    contentEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); commit(); } });
+    // Enter saves from anywhere in the form (Lev's ask: no mouse trip to the button). Ctrl/Cmd+Enter
+    // always saves, even from the multi-line note. Plain Enter saves too, EXCEPT from the note
+    // textarea (there it's a newline) and when a button / day-chip / color-swatch holds focus — those
+    // act on their own Enter. IME composition (e.isComposing) is left alone.
+    contentEl.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' || e.isComposing) return;
+      if (e.metaKey || e.ctrlKey) { e.preventDefault(); commit(); return; }
+      const el = e.target;
+      const tag = (el && el.tagName) || '';
+      if (tag === 'TEXTAREA' || tag === 'BUTTON') return;
+      if (el && el.classList && (el.classList.contains('dn-wd-btn') || el.classList.contains('dn-color-swatch'))) return;
+      e.preventDefault();
+      commit();
+    });
   }
 
   readRepeat(repSel, committedDate) {
@@ -2677,19 +3049,21 @@ class QuickCreateModal extends Modal {
       if (committed) return;
       const title = titleInput.value.trim();
       if (!title) { titleInput.focus(); return; }
-      let start = null;
+      let start = null, endTyped = null;
       if (!isTask) {
         const val = timeInput.value.trim();
         if (val) {
-          start = parseCompactTime(val);
-          if (!start) { timeRow.removeClass('dn-hide'); timeInput.focus(); timeInput.select(); return; } // invalid → let them fix it
+          const r = parseTimeRange(val); // "15-18" → start 15:00 + end 18:00; "1518"/"15:18" → start only
+          if (!r) { timeRow.removeClass('dn-hide'); timeInput.focus(); timeInput.select(); return; } // invalid → let them fix it
+          start = r.start;
+          endTyped = r.end;
         }
       }
       committed = true;
-      // A drawn range (drag-to-create) carries its duration — even if the user typed a
-      // different start time, the end shifts along keeping the drawn length.
-      let end = null;
-      if (!isTask && start && this.opts.end && this.opts.start) {
+      let end = endTyped;
+      // A drawn range (drag-to-create) carries its duration — but a typed end wins. Even if the
+      // user typed a different start, the drawn end shifts along keeping the drawn length.
+      if (!isTask && start && !end && this.opts.end && this.opts.start) {
         const dur = timeToMin(this.opts.end) - timeToMin(this.opts.start);
         if (dur > 0) end = minToTime(Math.min(24 * 60 - 1, timeToMin(start) + dur));
       }
@@ -2720,9 +3094,11 @@ class QuickCreateModal extends Modal {
     more.addEventListener('click', () => {
       committed = true;
       const val = timeInput.value.trim();
-      const start = val ? parseCompactTime(val) : (this.opts.start || null);
+      const r = val ? parseTimeRange(val) : null; // carry a typed range into the editor
+      const start = r ? r.start : (this.opts.start || null);
+      const end = (r && r.end) ? r.end : (this.opts.end || null);
       this.close();
-      this.live().openEditor(null, { date: this.dateIso, title: titleInput.value.trim(), start: isTask ? null : start, end: isTask ? null : (this.opts.end || null), task: isTask });
+      this.live().openEditor(null, { date: this.dateIso, title: titleInput.value.trim(), start: isTask ? null : start, end: isTask ? null : end, task: isTask });
     });
     foot.createDiv({ cls: 'dn-foot-spacer' });
     foot.createEl('button', { text: t('cancel') }).addEventListener('click', () => this.close());
@@ -2756,6 +3132,29 @@ class ConfirmModal extends Modal {
     setTimeout(() => ok.focus(), 0);
   }
   onClose() { this.contentEl.empty(); }
+}
+
+/* A tiny date jumper: a native date field + Go / Today. Enter commits; closing hands focus
+ * back to the grid so the arrows keep working. */
+class GoToDateModal extends Modal {
+  constructor(app, renderer) { super(app); this.renderer = renderer; }
+  onOpen() {
+    const { contentEl, titleEl } = this;
+    contentEl.addClass('dn-modal');
+    if (this.modalEl) this.modalEl.addClass('dn-event-modal');
+    titleEl.setText(t('goToDate'));
+    const v = this.renderer.view();
+    const row = contentEl.createDiv({ cls: 'dn-row' });
+    const input = row.createEl('input', { cls: 'dn-in dn-grow', attr: { type: 'date', value: v.anchor || isoToday() } });
+    setTimeout(() => { input.focus(); }, 0);
+    const go = () => { const iso = toIsoDate(input.value); this.close(); if (iso) this.renderer.goToDate(iso); };
+    const foot = contentEl.createDiv({ cls: 'dn-modal-foot' });
+    foot.createDiv({ cls: 'dn-foot-spacer' });
+    foot.createEl('button', { text: t('today') }).addEventListener('click', () => { this.close(); this.renderer.goToday(); });
+    foot.createEl('button', { cls: 'mod-cta', text: t('goBtn') }).addEventListener('click', go);
+    contentEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+  }
+  onClose() { this.contentEl.empty(); returnFocusToGrid(this.renderer); }
 }
 
 /* ------------------------------------------------------------------ *

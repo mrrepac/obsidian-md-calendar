@@ -1,6 +1,9 @@
 # Per-user plugin data (calendar view state & settings) — not part of the plugin
 data.json
 
+# Local dev-only deploy script (contains a machine-specific vault path)
+deploy.mjs
+
 # Tooling / OS
 node_modules/
 .DS_Store
