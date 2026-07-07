@@ -3300,7 +3300,7 @@ class MdCalendarPlugin extends Plugin {
     // multi-calendar setting flips them back to "create" (applied on plugin reload).
     const noteCmdLabel = t(this.settings.multiCalendar ? 'newNoteCmd' : 'openNoteCmd');
     this.addCommand({ id: 'create-calendar-note', name: noteCmdLabel, callback: () => this.createCalendarNote() });
-    this.addRibbonIcon('calendar', this.settings.multiCalendar ? t('ribbon') : noteCmdLabel, () => this.createCalendarNote());
+    this.addRibbonIcon('calendar-days', this.settings.multiCalendar ? t('ribbon') : noteCmdLabel, () => this.createCalendarNote());
 
     // Keep the remembered calendar-note path fresh across renames/moves.
     this.registerEvent(this.app.vault.on('rename', (file, oldPath) => {
