@@ -26,6 +26,8 @@ const {
   setIcon,
   MarkdownRenderChild,
 } = require('obsidian');
+// Obsidian resolves this at runtime for unbundled plugins, same as 'obsidian'.
+const { EditorView } = require('@codemirror/view');
 
 /* ------------------------------------------------------------------ *
  * i18n — English by default, Russian when Obsidian's language is ru.  *
@@ -3269,6 +3271,20 @@ class MdCalendarSettingTab extends PluginSettingTab {
  * ------------------------------------------------------------------ */
 const STARTER_BLOCK = '```' + FENCE + '\n{\n  "events": []\n}\n```\n';
 
+/* Character ranges of every md-calendar block in a CodeMirror document. An unterminated
+ * block runs to the end of the note — that's how the editor renders it too. */
+function calendarBlockRanges(doc) {
+  const out = [];
+  let from = -1;
+  for (let n = 1; n <= doc.lines; n++) {
+    const line = doc.line(n);
+    if (from < 0) { if (DN_FENCE_OPEN.test(line.text)) from = line.from; }
+    else if (DN_FENCE_CLOSE.test(line.text)) { out.push([from, line.to]); from = -1; }
+  }
+  if (from >= 0) out.push([from, doc.length]);
+  return out;
+}
+
 class MdCalendarPlugin extends Plugin {
   async onload() {
     // Keep only known settings keys — earlier versions / a pasted tasknote data.json left stale
@@ -3294,6 +3310,26 @@ class MdCalendarPlugin extends Plugin {
       try { renderer.render(); }
       catch (e) { console.error('MD Calendar: render failed', e); el.setText('MD Calendar: ' + (e.message || e)); }
     });
+
+    // In Live Preview a click on the note *around* the calendar — the block's own margin, the
+    // strip above or below it — drops the text cursor inside the fence, and the editor answers
+    // by unfolding the whole calendar into raw JSON. Swallow those clicks. The block's hover
+    // "edit" pencil and Source mode still get you to the source when you actually want it.
+    this.registerEditorExtension(EditorView.domEventHandlers({
+      mousedown: (evt, view) => {
+        const target = evt.target;
+        if (!(target instanceof HTMLElement)) return false;
+        if (target.closest('.md-calendar, .edit-block-button')) return false; // inside the calendar, or the way in
+        // No rendered block in this editor means Source mode, or a block already unfolded —
+        // either way the note is being edited as text and the cursor belongs to the user.
+        if (!view.dom.querySelector('.block-language-' + FENCE)) return false;
+        const pos = view.posAtCoords({ x: evt.clientX, y: evt.clientY }, false);
+        if (pos == null) return false;
+        if (!calendarBlockRanges(view.state.doc).some(([from, to]) => pos >= from && pos <= to)) return false;
+        evt.preventDefault();
+        return true;
+      },
+    }));
 
     this.addCommand({ id: 'insert-calendar', name: t('insertCmd'), editorCallback: (editor) => editor.replaceSelection(STARTER_BLOCK) });
     // Single-calendar mode (default) is open-or-create, so the labels say "open"; the
