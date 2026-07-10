@@ -380,7 +380,6 @@
   padding: 2px 4px;
   border-radius: 4px;
   border-left: 3px solid var(--dn-ev);
-  background: var(--background-secondary);
   background: color-mix(in srgb, var(--dn-ev) 20%, var(--background-primary));
   font-size: var(--font-ui-smaller);
   line-height: 1.25;
