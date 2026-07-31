@@ -64,7 +64,7 @@ const STRINGS = {
     allDay: 'All-day',
     more: '+{0} more',
     noEvents: 'No events this day.',
-    gridNav: 'Calendar grid. Arrows or WASD move the selection (W/S walk the hours in week/day), Q/E switch views, PageUp/PageDown months, Enter or Space adds an event, T jumps to today, G goes to a date',
+    gridNav: 'Calendar grid. Arrows or WASD move the day selection (W/S walk the hours in week/day). Tab steps into that day’s items: Enter edits, Space completes, Delete removes, M opens the menu, Escape steps back out. Q/E switch views, PageUp/PageDown months, Enter or Space on a day adds an event, T jumps to today, G goes to a date, F searches',
     newEvent: 'New event',
     editEvent: 'Edit event',
     e_title: 'Title',
@@ -129,6 +129,36 @@ const STRINGS = {
     openNoteCmd: 'Open the calendar note',
     ribbon: 'Create a calendar note',
     recurred: 'Recurring event moved to {0}',
+    orphanWarn: '{0} record(s) with no usable date — kept in the block, but not shown.',
+    orphanBtn: 'Sort out',
+    orphanTitle: 'Records without a date',
+    orphanHint: 'These records could not be placed on the calendar: their date is missing or unreadable. Give each one a date to bring it back, or delete it.',
+    orphanNoDate: 'no date',
+    orphanRestore: 'Place',
+    orphanEmpty: 'Nothing left here.',
+    search: 'Search',
+    searchPlaceholder: 'Search titles and descriptions…',
+    searchEmpty: 'Nothing found.',
+    searchCmd: 'Find an event',
+    searchHint: '{0} found — Enter jumps to the date',
+    calTitle: 'Calendar name',
+    calTitleHint: 'Shown above the calendar. Leave empty to hide it.',
+    nextDay: 'next day',
+    s_viewDesktop: 'Default view (desktop)',
+    s_viewMobile: 'Default view (mobile)',
+    s_fdow: 'First day of week',
+    s_fdowAuto: 'Follow Obsidian locale',
+    s_dur: 'New event duration (min)',
+    s_snap: 'Drag and resize step (min)',
+    s_sound: 'Completion sound',
+    s_soundDesc: 'A short chime when you tick something done.',
+    s_dayStart: 'Day starts at (hour)',
+    s_dayEnd: 'Day ends at (hour)',
+    s_hoursDesc: 'The hours normally on screen in week and day. The grid widens by itself to fit anything outside them.',
+    s_monthChips: 'Events per day in month view',
+    s_monthChipsDesc: 'Beyond this, the day shows “+N more”, which lists the rest without leaving the month. Higher values make the rows taller.',
+    s_multi: 'Multiple calendars',
+    s_multiDesc: 'On — the button creates a new calendar every time. Off — one calendar, the button opens it.',
   },
   ru: {
     untitled: 'Календарь',
@@ -152,7 +182,7 @@ const STRINGS = {
     allDay: 'Весь день',
     more: 'ещё {0}',
     noEvents: 'В этот день событий нет.',
-    gridNav: 'Сетка календаря. Стрелки или WASD двигают указатель (W/S — часы в неделе/дне), Q/E — переключение вида, PageUp/PageDown — месяцы, Enter/пробел — новое событие, T — сегодня, G — переход к дате',
+    gridNav: 'Сетка календаря. Стрелки или WASD двигают указатель по дням (W/S — часы в неделе/дне). Tab заходит внутрь дня, к его событиям: Enter — изменить, пробел — выполнено, Delete — удалить, M — меню, Escape — обратно к дню. Q/E — переключение вида, PageUp/PageDown — месяцы, Enter/пробел на дне — новое событие, T — сегодня, G — переход к дате, F — поиск',
     newEvent: 'Новое событие',
     editEvent: 'Изменить событие',
     e_title: 'Название',
@@ -217,6 +247,36 @@ const STRINGS = {
     openNoteCmd: 'Открыть заметку-календарь',
     ribbon: 'Создать заметку-календарь',
     recurred: 'Повтор перенесён на {0}',
+    orphanWarn: 'Записей без пригодной даты: {0} — они сохранены в блоке, но не показаны.',
+    orphanBtn: 'Разобрать',
+    orphanTitle: 'Записи без даты',
+    orphanHint: 'Эти записи не удалось поставить в календарь: даты нет или она нечитаема. Задайте дату, чтобы вернуть запись, либо удалите её.',
+    orphanNoDate: 'нет даты',
+    orphanRestore: 'Поставить',
+    orphanEmpty: 'Здесь больше ничего нет.',
+    search: 'Поиск',
+    searchPlaceholder: 'Поиск по названию и описанию…',
+    searchEmpty: 'Ничего не найдено.',
+    searchCmd: 'Найти событие',
+    searchHint: 'Найдено: {0} — Enter перейдёт к дате',
+    calTitle: 'Название календаря',
+    calTitleHint: 'Показывается над календарём. Пустое поле скрывает заголовок.',
+    nextDay: 'след. день',
+    s_viewDesktop: 'Вид по умолчанию (десктоп)',
+    s_viewMobile: 'Вид по умолчанию (мобильный)',
+    s_fdow: 'Первый день недели',
+    s_fdowAuto: 'Как в языке Obsidian',
+    s_dur: 'Длительность нового события (мин)',
+    s_snap: 'Шаг перетаскивания и растяжения (мин)',
+    s_sound: 'Звук выполнения',
+    s_soundDesc: 'Короткий сигнал при отметке «выполнено».',
+    s_dayStart: 'Начало дня (час)',
+    s_dayEnd: 'Конец дня (час)',
+    s_hoursDesc: 'Часы, которые обычно видно в неделе и дне. Для событий вне этого окна сетка раздвигается сама.',
+    s_monthChips: 'Событий в дне в виде «Месяц»',
+    s_monthChipsDesc: 'Дальше день показывает «ещё N» — список остальных открывается на месте, не уводя из месяца. Чем больше значение, тем выше строки.',
+    s_multi: 'Несколько календарей',
+    s_multiDesc: 'Вкл — кнопка каждый раз создаёт новый календарь. Выкл — календарь один, кнопка открывает его.',
   },
 };
 
@@ -243,7 +303,6 @@ const VIEW_CYCLE = ['month', 'week', 'day', 'agenda'];
 // A phone gets just these two: agenda (the default — its mini calendar with dots IS the
 // month overview) and day. Month/week grids are unreadable at that size.
 const MOBILE_VIEWS = ['agenda', 'day'];
-const VIEW_ICONS = { month: 'calendar', week: 'calendar-range', day: 'calendar-clock', agenda: 'list' };
 // Semantic color keys → theme CSS variables (never a raw hex). See styles.css.
 const COLOR_KEYS = ['default', 'red', 'orange', 'yellow', 'green', 'blue', 'purple'];
 const DEFAULT_PLUGIN_SETTINGS = {
@@ -257,6 +316,10 @@ const DEFAULT_PLUGIN_SETTINGS = {
   multiCalendar: false,   // false: the ribbon/command opens the existing calendar note
   calendarNotePath: '',   // remembered single-calendar note (kept fresh across renames)
   completionSound: true,  // a short chime when something is ticked done
+  monthChips: 4,          // events drawn in a month cell before "+N more" takes over
+  // Per-block UI state — { "<notePath>::<calId>": { view, showCompleted } }. It lives HERE and
+  // not in the note so that paging through views stops rewriting the user's Markdown file.
+  viewMemory: {},
 };
 
 /* A soft rising two-note chime (Web Audio, no asset files): played on completing an item.
@@ -326,19 +389,22 @@ function parseCompactTime(s) {
 /* Parse a time entry that may be a RANGE: a hyphen / en-dash / em-dash splits start from end —
  * "15-18" → {start:'15:00', end:'18:00'}, "1500-1800" and "9:00-10:30" likewise. A lone time —
  * "1518", "15:18", "15" — is a start only (":" and bare digits never mean a range): {start,end:null}.
- * null if the start doesn't parse. An end that isn't after the start is dropped (normalizeEvent
- * would rewrite it to start+duration anyway). */
+ * null if the start doesn't parse. An end EARLIER than the start is kept — "23-02" is the night
+ * train, an event that runs past midnight; only an end equal to the start is meaningless and
+ * dropped (normalizeEvent would rewrite it to start+duration anyway). */
 function parseTimeRange(s) {
   const str = String(s == null ? '' : s).trim();
   const parts = str.split(/\s*[-–—]\s*/);
   if (parts.length === 2 && parts[0] && parts[1]) {
     const start = parseCompactTime(parts[0]);
     const end = parseCompactTime(parts[1]);
-    if (start) return { start, end: (end && timeToMin(end) > timeToMin(start)) ? end : null };
+    if (start) return { start, end: (end && timeToMin(end) !== timeToMin(start)) ? end : null };
   }
   const start = parseCompactTime(str);
   return start ? { start, end: null } : null;
 }
+
+const DAY_MIN = 24 * 60;
 
 function timeToMin(hhmm) {
   const m = normTime(hhmm);
@@ -346,8 +412,34 @@ function timeToMin(hhmm) {
   return Number(m.slice(0, 2)) * 60 + Number(m.slice(3, 5));
 }
 function minToTime(min) {
-  min = Math.max(0, Math.min(24 * 60 - 1, Math.round(min)));
+  min = Math.max(0, Math.min(DAY_MIN - 1, Math.round(min)));
   return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0');
+}
+
+/* How long a timed event lasts, wrapping over midnight: 23:00→02:00 is 180 minutes, not −1260. */
+function durationMin(start, end) {
+  const s = timeToMin(start), e = timeToMin(end);
+  if (s == null || e == null) return null;
+  return e > s ? e - s : (e + DAY_MIN) - s;
+}
+
+/* A timed event whose end is BEFORE its start runs into the next day (the night train, the
+ * party that ends at 02:00). It is drawn as two segments — see bucketByDay. An end of exactly
+ * 00:00 is the midnight boundary itself: one segment, finishing at the bottom of its own day. */
+function crossesMidnight(it) {
+  if (!it || it.allDay || !it.start || !it.end) return false;
+  const s = timeToMin(it.start), e = timeToMin(it.end);
+  return s != null && e != null && e < s && e > 0;
+}
+
+/* The minute a drawn segment finishes at. An end of exactly 00:00 belongs to the BOTTOM of its
+ * own day (24:00), not to the top of it — otherwise a 22:00–00:00 event lays out as zero-length
+ * and gets rewritten to the default duration. */
+function segEndMin(it) {
+  const e = timeToMin(it.segEnd || it.end);
+  if (e == null) return null;
+  const s = timeToMin(it.segStart || it.start);
+  return (e === 0 && s != null && s > 0) ? DAY_MIN : e;
 }
 
 /* Advance an ISO date by a repeat rule. */
@@ -454,11 +546,13 @@ function normalizeEvent(raw, i) {
   if (!start) {
     end = null;
   } else {
-    // A timed event lasts the configured default (one hour out of the box): materialize
-    // the end when it's missing or not after the start (clamped to the end of the day).
+    // An end BEFORE the start means the event runs past midnight (23:00–02:00) — that is kept
+    // exactly as typed. Only a missing or zero-length end is materialized, to the configured
+    // default (one hour out of the box), wrapping around midnight rather than being flattened
+    // against 23:59 as it used to be.
     const sMin = timeToMin(start);
     let eMin = end ? timeToMin(end) : null;
-    if (eMin == null || eMin <= sMin) eMin = sMin + CFG.defaultDur;
+    if (eMin == null || eMin === sMin) eMin = (sMin + CFG.defaultDur) % DAY_MIN;
     end = minToTime(eMin);
   }
   // A multi-day span is an all-day-only concept, so endDate only survives for time-less events;
@@ -478,6 +572,14 @@ function normalizeEvent(raw, i) {
     const ds = Array.from(new Set(r.skip.map(toIsoDate).filter(Boolean))).sort();
     if (ds.length) skip = ds;
   }
+  // Per-occurrence completion for a repeating EVENT: ticking one occurrence must not move the
+  // series (that erased every earlier occurrence from the calendar). A repeating TASK keeps the
+  // to-do model instead — completing it rolls the base date forward — so the list is inert there.
+  let doneDates = null;
+  if (repeat && !task && Array.isArray(r.doneDates)) {
+    const ds = Array.from(new Set(r.doneDates.map(toIsoDate).filter(Boolean))).sort();
+    if (ds.length) doneDates = ds;
+  }
   return {
     id: typeof r.id === 'string' && r.id ? r.id : uid('e'),
     title: typeof r.title === 'string' ? r.title : (typeof r.text === 'string' ? r.text : ''),
@@ -488,6 +590,7 @@ function normalizeEvent(raw, i) {
     endDate,
     repeat,
     skip,
+    doneDates,
     note: typeof r.note === 'string' ? r.note : '',
     color,
     done,
@@ -511,11 +614,19 @@ function normalizeCal(parsed, defaults) {
   };
   if (!VIEW_CYCLE.includes(settings.view)) settings.view = 'month';
 
-  let events = Array.isArray(m.events) ? m.events
+  const rawEvents = Array.isArray(m.events) ? m.events
     : Array.isArray(m.tasks) ? m.tasks : []; // accept a pasted tasknote board
-  // Drop records with no usable date: expandInstances can't place them, so they would be invisible,
-  // unreachable ghosts that still round-trip to disk on every save.
-  events = events.map(normalizeEvent).filter((ev) => ev.date);
+  // A record with no usable date can't be placed by expandInstances, so it can't be rendered.
+  // It is NOT dropped, though — that used to delete a hand-typed "01.07.2026" from the note on
+  // the next save, silently and past undo's reach. Such records are quarantined verbatim:
+  // serializeCal writes them back untouched, and the header offers a way to date or delete them.
+  const orphans = [];
+  const events = [];
+  rawEvents.forEach((raw, i) => {
+    const ev = normalizeEvent(raw, i);
+    if (ev.date) events.push(ev);
+    else if (raw && typeof raw === 'object') orphans.push(raw);
+  });
 
   // Guarantee unique ids so find()/edit/delete stay consistent after a hand-edit or sync conflict.
   const seen = new Set();
@@ -530,6 +641,7 @@ function normalizeCal(parsed, defaults) {
     title: typeof m.title === 'string' ? m.title : '',
     settings,
     events,
+    orphans,
   };
 }
 
@@ -541,6 +653,7 @@ function cleanEvent(ev) {
   if (ev.endDate) o.endDate = ev.endDate;
   if (ev.repeat) o.repeat = ev.repeat;
   if (ev.skip && ev.skip.length) o.skip = ev.skip;
+  if (ev.doneDates && ev.doneDates.length) o.doneDates = ev.doneDates;
   if (ev.note) o.note = ev.note;
   if (ev.color) o.color = ev.color;
   if (ev.done) o.done = true;
@@ -554,7 +667,9 @@ function serializeCal(m) {
   const out = { version: 1, calId: m.calId };
   if (m.title) out.title = m.title;
   out.settings = m.settings;
-  out.events = m.events.map(cleanEvent);
+  // Undatable records ride along at the end, byte-for-byte as they were read (see normalizeCal):
+  // the block never loses a record just because its date didn't parse.
+  out.events = m.events.map(cleanEvent).concat(m.orphans || []);
   return JSON.stringify(out, null, 2);
 }
 
@@ -700,10 +815,13 @@ function instance(ev, dateIso) {
     repeat: ev.repeat,
     note: ev.note,
     color: ev.color,
-    // A LIVE series is never done as a whole — completing an occurrence rolls the base date
-    // forward. But a series completed past its repeat END (until) legitimately carries
-    // done:true: its occurrences render struck-through, and un-ticking one revives the series.
-    done: ev.repeat ? ev.done === true : ev.done,
+    // A repeating EVENT is completed per occurrence (doneDates) — the series itself stays put.
+    // A repeating TASK still rolls its base date forward when ticked, so a live task series is
+    // never done as a whole; a task series completed past its repeat END (until) does carry
+    // done:true — its occurrences render struck-through and un-ticking one revives the series.
+    done: ev.repeat
+      ? (ev.done === true || !!(ev.doneDates && ev.doneDates.indexOf(dateIso) >= 0))
+      : ev.done,
   };
 }
 
@@ -752,9 +870,11 @@ function navStep(view, anchorM, dir) {
 function layoutTimedEvents(items, dayStartMin, dayEndMin, defaultDur) {
   const range = Math.max(1, dayEndMin - dayStartMin);
   const evs = items.map((it) => {
-    let s = timeToMin(it.start);
+    // segStart/segEnd exist on the two halves of an event that runs past midnight (bucketByDay);
+    // start/end stay truthful there so the label still reads "23:00–02:00" on both halves.
+    let s = timeToMin(it.segStart || it.start);
     if (s == null) s = dayStartMin;
-    let e = timeToMin(it.end);
+    let e = segEndMin(it);
     if (e == null || e <= s) e = s + defaultDur;
     // Clamp into the visible working-hours window BEFORE laying out, so lane grouping, top and
     // height all agree. Otherwise an event starting before dayStart (or ending after dayEnd) pins
@@ -803,10 +923,10 @@ function undoState(key) {
 
 /* Ephemeral per-block view state that survives re-renders but isn't written to disk. */
 const VIEW_STATES = new Map();
-function viewState(key, defaults) {
+function viewState(key) {
   let v = VIEW_STATES.get(key);
   if (!v) {
-    v = { view: null, anchor: isoToday(), addDraft: '', hintOpen: false, focusAddUntil: 0 };
+    v = { view: null, seeded: false, showCompleted: true, anchor: isoToday(), selItem: null, addDraft: '', hintOpen: false, focusAddUntil: 0 };
     VIEW_STATES.set(key, v);
   }
   return v;
@@ -871,6 +991,9 @@ class CalendarRenderer {
     if (today !== this._lastDay) {
       const v = this.view();
       if (v.pending || this._activeDrags.size) return; // don't yank an in-flight interaction; retry next tick
+      // Someone reading "today" at 23:59 should still be on today at 00:01. Only follow the
+      // clock if the selection WAS the old today — a deliberate jump to another day stays put.
+      if (v.anchor === this._lastDay) { v.anchor = today; v.selItem = null; }
       this._lastDay = today;
       this.render();
       return;
@@ -886,13 +1009,43 @@ class CalendarRenderer {
   }
 
   stateKey() { return this.model ? (this.ctx.sourcePath + '::' + this.model.calId) : 'broken'; }
+
+  /* Which view is on screen, and whether completed items are shown. Both are UI state, not
+   * content: they are seeded from the block (so an old note still opens the way it was left)
+   * but from then on live in the plugin's own data.json. Writing them back into the note on
+   * every switch meant that merely paging through months rewrote the file, bumped its mtime
+   * and pushed it through sync — and forced a full block reprocess each time. */
   view() {
     const v = viewState(this.stateKey());
+    if (!v.seeded) {
+      v.seeded = true;
+      const mem = this.plugin.recallViewState(this.stateKey());
+      if (!v.view) v.view = mem.view || this.model.settings.view || 'month';
+      v.showCompleted = (typeof mem.showCompleted === 'boolean')
+        ? mem.showCompleted
+        : this.model.settings.showCompleted !== false;
+    }
     if (!v.view) v.view = this.model.settings.view || 'month';
-    // Mobile shows only agenda + day. The coercion is EPHEMERAL (view state, not
-    // settings.view), so opening the note on a phone never clobbers the desktop choice.
+    // Mobile shows only agenda + day. The coercion is EPHEMERAL, so opening the note on a
+    // phone never clobbers the desktop choice.
     if (IS_MOBILE() && !MOBILE_VIEWS.includes(v.view)) v.view = 'agenda';
     return v;
+  }
+
+  showCompleted() { return this.view().showCompleted !== false; }
+
+  setView(next) {
+    const v = this.view();
+    if (v.view === next) return;
+    v.view = next;
+    this.plugin.rememberViewState(this.stateKey(), { view: next });
+    this.render();
+  }
+
+  setShowCompleted(on) {
+    this.view().showCompleted = !!on;
+    this.plugin.rememberViewState(this.stateKey(), { showCompleted: !!on });
+    this.render(); // NOT mutate(): this is a filter, not an edit — it must not land in the undo stack
   }
 
   // Tear down every in-flight drag/resize gesture (a single shared slot would leak the earlier
@@ -1030,15 +1183,20 @@ class CalendarRenderer {
 
   /* ---- data ---- */
   itemsInRange(fromIso, toIso) {
+    // Reach one day further back than asked: an event running past midnight has a tail that
+    // belongs to the FIRST visible day, and bucketByDay can only cut that tail off if the head
+    // was fetched. Anything else picked up out there is clipped away by bucketByDay's window.
+    const fetchFrom = moment(fromIso, 'YYYY-MM-DD').subtract(1, 'day').format('YYYY-MM-DD');
     let items = [];
     for (const ev of this.model.events) {
-      for (const inst of expandInstances(ev, fromIso, toIso)) items.push(inst);
+      for (const inst of expandInstances(ev, fetchFrom, toIso)) items.push(inst);
     }
-    if (!this.model.settings.showCompleted) items = items.filter((it) => !it.done);
+    if (!this.showCompleted()) items = items.filter((it) => !it.done);
     return items;
   }
 
-  /* Bucket items by ISO day (multi-day all-day items land on each covered day). */
+  /* Bucket items by ISO day (multi-day all-day items land on each covered day; an event that
+   * runs past midnight is cut into a head and a tail, one per day). */
   bucketByDay(items, fromIso, toIso) {
     const map = new Map();
     const push = (iso, it) => {
@@ -1055,6 +1213,13 @@ class CalendarRenderer {
         let d = moment(spanStart, 'YYYY-MM-DD');
         const end = moment(spanEnd, 'YYYY-MM-DD');
         while (d.isSameOrBefore(end)) { push(d.format('YYYY-MM-DD'), it); d.add(1, 'day'); }
+      } else if (crossesMidnight(it)) {
+        // Two display halves of ONE occurrence. Both keep the real date/start/end (so the label,
+        // the context menu and per-occurrence actions all still address the true occurrence);
+        // only the drawn segment differs, via segStart/segEnd.
+        push(it.date, Object.assign({}, it, { spill: 'head', segStart: it.start, segEnd: '23:59' }));
+        const tailIso = moment(it.date, 'YYYY-MM-DD').add(1, 'day').format('YYYY-MM-DD');
+        push(tailIso, Object.assign({}, it, { spill: 'tail', segStart: '00:00', segEnd: it.end }));
       } else {
         push(it.date, it);
       }
@@ -1076,6 +1241,7 @@ class CalendarRenderer {
     this._gridEl = null;
     this.el.empty();
     this._timeGridInfo = null; // stale col refs die with el.empty(); renderTimeGrid rebuilds
+    this._daySel = [];         // rebuilt by registerSelectable as the views draw the anchor day
     this.el.addClass('md-calendar');
     this.el.toggleClass('dn-placing', !!v.pending); // placement mode: pick a day/slot to drop
     this.buildHeader(this.el);
@@ -1087,6 +1253,15 @@ class CalendarRenderer {
     } catch (e) {
       console.error('MD Calendar: view render failed', e);
       body.createDiv({ cls: 'dn-empty', text: 'MD Calendar: ' + (e.message || e) });
+    }
+
+    // Mark the keyboard-selected item. The index is clamped here rather than at every
+    // mutation site: deleting or completing an item can shorten the day's list under it.
+    if (typeof v.selItem === 'number') {
+      if (v.selItem >= this._daySel.length) v.selItem = this._daySel.length ? this._daySel.length - 1 : null;
+      const row = this._daySel[v.selItem];
+      if (row && row.el) row.el.addClass('is-item-sel');
+      else v.selItem = null;
     }
 
     if (!v.pending && hadGridFocus && this._gridEl) this._gridEl.focus({ preventScroll: true });
@@ -1135,9 +1310,14 @@ class CalendarRenderer {
     const v = this.view();
     const head = root.createDiv({ cls: 'dn-header' });
 
-    // Optional calendar title from the block JSON (was write-only before: kept on disk,
-    // shown nowhere). Rendered as its own full-width line above the controls.
-    if (this.model.title) head.createDiv({ cls: 'dn-title', text: this.model.title });
+    // Optional calendar title from the block JSON. Rendered as its own full-width line above
+    // the controls, and editable by clicking it (the pencil in the right cluster is the way in
+    // when there is no title yet — it used to be settable only by hand-editing the JSON).
+    if (this.model.title) {
+      const titleEl = head.createDiv({ cls: 'dn-title', text: this.model.title, attr: { role: 'button', tabindex: '0', 'aria-label': t('calTitle') } });
+      titleEl.addEventListener('click', () => this.openTitleEdit());
+      titleEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.openTitleEdit(); } });
+    }
 
     // The period label is its own full-width line ABOVE the controls: its width varies
     // wildly between views («Июль 2026» vs «29 Июня – 5 Июля 2026»), so anything sharing
@@ -1158,21 +1338,47 @@ class CalendarRenderer {
     const seg = right.createDiv({ cls: 'dn-views' });
     for (const view of (IS_MOBILE() ? MOBILE_VIEWS : VIEW_CYCLE)) {
       const b = seg.createEl('button', { cls: 'dn-seg-btn' + (v.view === view ? ' is-on' : ''), text: t('v_' + view) });
-      b.addEventListener('click', () => {
-        if (v.view === view) return;
-        v.view = view;
-        this.model.settings.view = view;
-        this.render();
-        this.schedulePersist();
-      });
+      b.addEventListener('click', () => this.setView(view));
     }
 
-    const s = this.model.settings;
-    this.iconBtn(right, s.showCompleted ? 'eye' : 'eye-off', s.showCompleted ? t('hideCompleted') : t('showCompleted'),
-      () => this.mutate((m) => { m.settings.showCompleted = !m.settings.showCompleted; }), s.showCompleted);
+    this.iconBtn(right, 'search', t('search'), () => this.openSearch());
+    this.iconBtn(right, 'pencil', t('calTitle'), () => this.openTitleEdit());
+    const showDone = this.showCompleted();
+    this.iconBtn(right, showDone ? 'eye' : 'eye-off', showDone ? t('hideCompleted') : t('showCompleted'),
+      () => this.setShowCompleted(!showDone), showDone);
     this.iconBtn(right, 'trash-2', t('clearDone'), () => this.clearDone());
 
     this.buildAddBar(head);
+
+    // Quarantined records (no usable date) — they are still in the block, just not placeable.
+    // Say so out loud rather than letting them sit invisible forever.
+    const orphans = this.model.orphans || [];
+    if (orphans.length) {
+      const strip = head.createDiv({ cls: 'dn-orphan-strip' });
+      setIcon(strip.createSpan({ cls: 'dn-orphan-ic' }), 'alert-triangle');
+      strip.createSpan({ cls: 'dn-orphan-text', text: t('orphanWarn', orphans.length) });
+      const btn = strip.createEl('button', { cls: 'dn-btn dn-orphan-btn', text: t('orphanBtn') });
+      btn.addEventListener('click', () => new OrphanModal(this.app, this).open());
+    }
+  }
+
+  /* Give a quarantined record a date: it leaves model.orphans and becomes a normal event. */
+  adoptOrphan(key, iso) {
+    this.mutate((m) => {
+      const idx = (m.orphans || []).findIndex((o) => JSON.stringify(o) === key);
+      if (idx < 0 || !iso) return;
+      const raw = m.orphans[idx];
+      m.orphans.splice(idx, 1);
+      m.events.push(normalizeEvent(Object.assign({}, raw, { date: iso }), m.events.length));
+      m.events.forEach((x, i) => { x.order = i; });
+    });
+  }
+
+  dropOrphan(key) {
+    this.mutate((m) => {
+      const idx = (m.orphans || []).findIndex((o) => JSON.stringify(o) === key);
+      if (idx >= 0) m.orphans.splice(idx, 1);
+    });
   }
 
   iconBtn(parent, icon, label, onClick, on) {
@@ -1362,10 +1568,13 @@ class CalendarRenderer {
    * document-level listeners, and a keypress in the note editor never reaches us. The
    * selection IS v.anchor: agenda already renders it (the day panel), month highlights
    * it only while the grid owns focus. */
-  armGridKeys(grid) {
+  armGridKeys(grid, role) {
     this._gridEl = grid;
     grid.setAttribute('tabindex', '0');
-    grid.setAttribute('role', 'grid');
+    // Only the month grid is a real row/cell table. The agenda's 42 cells have no row
+    // wrappers and the time grid isn't tabular at all — claiming role="grid" there made a
+    // screen reader announce a table with no rows in it.
+    grid.setAttribute('role', role || 'group');
     grid.setAttribute('aria-label', t('gridNav'));
     grid.addEventListener('keydown', (e) => {
       const v = this.view();
@@ -1377,8 +1586,13 @@ class CalendarRenderer {
       // In the week/day time grid the selection is 2D: A/D (←/→) picks the day,
       // W/S (↑/↓) walks the all-day band and the hour slots. Elsewhere ↑/↓ = ±week.
       const timeGrid = v.view === 'week' || v.view === 'day';
+      // Tab steps INTO the selected day's items; with one picked, Enter/Space/Delete act on
+      // it instead of on the day. Without this the grid could only walk days and create —
+      // editing or deleting anything needed the mouse.
+      const item = this.selectedItem();
       let handled = true;
-      if (k === 'ArrowLeft' || code === 'KeyA') this.moveSelection(-1);
+      if (k === 'Tab') this.selectItem(e.shiftKey ? -1 : 1);
+      else if (k === 'ArrowLeft' || code === 'KeyA') this.moveSelection(-1);
       else if (k === 'ArrowRight' || code === 'KeyD') this.moveSelection(1);
       else if (k === 'ArrowUp' || code === 'KeyW') { if (timeGrid) this.moveSelSlot(-1); else this.moveSelection(-7); }
       else if (k === 'ArrowDown' || code === 'KeyS') { if (timeGrid) this.moveSelSlot(1); else this.moveSelection(7); }
@@ -1390,17 +1604,72 @@ class CalendarRenderer {
         const ws = weekStart(moment(v.anchor, 'YYYY-MM-DD'));
         v.anchor = (k === 'Home' ? ws : ws.add(6, 'day')).format('YYYY-MM-DD');
         v.selDom = moment(v.anchor, 'YYYY-MM-DD').date();
+        v.selItem = null;
         this.render();
-      } else if (k === 'Enter' || k === ' ' || code === 'Space') {
-        // In week/day an hour slot carries its time into the quick-create dialog.
-        const start = (timeGrid && typeof v.selSlot === 'number') ? String(v.selSlot).padStart(2, '0') + ':00' : null;
-        this.openQuickCreate(v.anchor, start ? { start } : undefined);
+      } else if (k === 'Enter') {
+        if (item) this.onItemClick(item);
+        else this.openQuickCreate(v.anchor, this._slotStart() || undefined);
+      } else if (k === ' ' || code === 'Space') {
+        if (item) this.toggleDone(item);
+        else this.openQuickCreate(v.anchor, this._slotStart() || undefined);
+      } else if (k === 'Delete' || k === 'Backspace') {
+        if (item) this.deleteEvent(item); else handled = false;
+      } else if (code === 'KeyM' || k === 'ContextMenu') {
+        if (item) this.openItemMenuAtSelection(); else handled = false;
       } else if (code === 'KeyT') this.goToday();
       else if (code === 'KeyG') this.openGoToDate();
-      else if (k === 'Escape') grid.blur();
-      else handled = false;
+      else if (code === 'KeyF') this.openSearch();
+      else if (k === 'Escape') {
+        // Step out of the item selection first; only a second Escape leaves the grid.
+        if (item) { v.selItem = null; this.render(); } else grid.blur();
+      } else handled = false;
       if (handled) { e.preventDefault(); e.stopPropagation(); }
     });
+  }
+
+  /* The hour under the week/day slot cursor, as quick-create options. */
+  _slotStart() {
+    const v = this.view();
+    const timeGrid = v.view === 'week' || v.view === 'day';
+    if (!timeGrid || typeof v.selSlot !== 'number') return null;
+    return { start: String(v.selSlot).padStart(2, '0') + ':00' };
+  }
+
+  /* Items of the selected day, in the order they are drawn — the Tab order. Filled by
+   * registerSelectable() as each view builds its chips/rows/blocks. */
+  registerSelectable(el, it, dayIso) {
+    if (!el || dayIso !== this.view().anchor) return el;
+    this._daySel.push({ el, it });
+    return el;
+  }
+
+  selectedItem() {
+    const v = this.view();
+    const row = (this._daySel || [])[v.selItem];
+    return row ? row.it : null;
+  }
+
+  /* Tab / Shift+Tab through the day's items. Stepping past either end drops back to
+   * day level rather than wrapping straight round, so the day itself stays reachable. */
+  selectItem(dir) {
+    const v = this.view();
+    const list = this._daySel || [];
+    if (!list.length) { v.selItem = null; return; }
+    const cur = (typeof v.selItem === 'number') ? v.selItem : null;
+    let next;
+    if (cur == null) next = dir > 0 ? 0 : list.length - 1;
+    else next = cur + dir;
+    v.selItem = (next < 0 || next >= list.length) ? null : next;
+    this.render();
+  }
+
+  /* The context menu for the keyboard-selected item, anchored to its own box. */
+  openItemMenuAtSelection() {
+    const v = this.view();
+    const row = (this._daySel || [])[v.selItem];
+    if (!row || !row.el) return;
+    const r = row.el.getBoundingClientRect();
+    this.openEventMenu({ x: r.left, y: r.bottom }, row.it);
   }
 
   /* Q/E cycle the view left/right through month → week → day → agenda (wrapping), exactly
@@ -1409,24 +1678,32 @@ class CalendarRenderer {
     const v = this.view();
     const cycle = IS_MOBILE() ? MOBILE_VIEWS : VIEW_CYCLE;
     const i = Math.max(0, cycle.indexOf(v.view));
-    const next = cycle[(i + dir + cycle.length) % cycle.length];
-    v.view = next;
-    this.model.settings.view = next;
-    this.render();
-    this.schedulePersist();
+    this.setView(cycle[(i + dir + cycle.length) % cycle.length]);
   }
 
   /* W/S in the time grid: null = the all-day band (the default), numbers walk the visible
    * hour slots; up from the first hour lands back on all-day. */
-  moveSelSlot(dir) {
-    const v = this.view();
+  /* The hour window the time grid is CURRENTLY drawn with: the configured one, possibly grown to
+   * fit the events on screen (see renderTimeGrid). Every consumer — the slot cursor, the drop
+   * ghost, the resize math — reads it from here, so none of them can disagree with the grid. */
+  hourWindow() {
+    const g = this._timeGridInfo;
+    if (g) return { dayStartMin: g.dayStartMin, dayEndMin: g.dayEndMin };
     const s = this.plugin.settings;
     const dayStart = Math.max(0, Math.min(23, s.dayStart));
     const dayEnd = Math.max(dayStart + 1, Math.min(24, s.dayEnd));
+    return { dayStartMin: dayStart * 60, dayEndMin: dayEnd * 60 };
+  }
+
+  moveSelSlot(dir) {
+    const v = this.view();
+    const w = this.hourWindow();
+    const dayStart = Math.floor(w.dayStartMin / 60), dayEnd = Math.ceil(w.dayEndMin / 60);
     let cur = (typeof v.selSlot === 'number') ? v.selSlot : null;
     if (dir > 0) cur = cur == null ? dayStart : Math.min(dayEnd - 1, cur + 1);
     else cur = (cur == null || cur <= dayStart) ? null : cur - 1;
     v.selSlot = cur;
+    v.selItem = null;
     this.render();
   }
 
@@ -1469,6 +1746,7 @@ class CalendarRenderer {
     v.anchor = isoToday();
     v.selDom = null;
     v.selSlot = null;
+    v.selItem = null;
     this.render();
     if (this._gridEl) this._gridEl.focus({ preventScroll: true });
   }
@@ -1481,6 +1759,7 @@ class CalendarRenderer {
     v.anchor = iso;
     v.selDom = moment(iso, 'YYYY-MM-DD').date();
     v.selSlot = null;
+    v.selItem = null;
     this.render();
     if (this._gridEl) this._gridEl.focus({ preventScroll: true });
   }
@@ -1490,10 +1769,21 @@ class CalendarRenderer {
     new GoToDateModal(this.app, this).open();
   }
 
+  openSearch() {
+    if (this.view().pending) return; // placement mode owns the flow
+    new SearchModal(this.app, this).open();
+  }
+
+  openTitleEdit() {
+    if (this.view().pending) return;
+    new TitleModal(this.app, this).open();
+  }
+
   moveSelection(days) {
     const v = this.view();
     v.anchor = moment(v.anchor || isoToday(), 'YYYY-MM-DD').add(days, 'day').format('YYYY-MM-DD');
     v.selDom = moment(v.anchor, 'YYYY-MM-DD').date(); // the day-of-month to hold across month paging
+    v.selItem = null; // the item selection belongs to the day we just left
     this.render();
   }
 
@@ -1504,6 +1794,7 @@ class CalendarRenderer {
     const m = cur.date(1).add(months, 'month');
     m.date(Math.min(dom, m.daysInMonth())); // clamp to short months, but restore e.g. the 31st later
     v.anchor = m.format('YYYY-MM-DD');
+    v.selItem = null;
     this.render();
   }
 
@@ -1523,17 +1814,25 @@ class CalendarRenderer {
     for (let i = 0; i < 7; i++) wd.createSpan({ cls: 'dn-wd', text: wmin[(fdow() + i) % 7] });
 
     const grid = body.createDiv({ cls: 'dn-month' });
-    this.armGridKeys(grid);
+    this.armGridKeys(grid, 'grid');
     const gridStart = moment(from, 'YYYY-MM-DD');
     const curMonth = anchorM.month();
     const todayIso = isoToday();
     for (let w = 0; w < 6; w++) {
       const weekStartM = moment(gridStart).add(w * 7, 'day');
-      const week = grid.createDiv({ cls: 'dn-mweek' });
+      const week = grid.createDiv({ cls: 'dn-mweek', attr: { role: 'row' } });
       for (let c = 0; c < 7; c++) {
         const d = moment(weekStartM).add(c, 'day');
         const iso = d.format('YYYY-MM-DD');
-        const cell = week.createDiv({ cls: 'dn-day' + (d.month() !== curMonth ? ' is-other' : '') + (iso === todayIso ? ' is-today' : '') + (iso === v.anchor ? ' is-sel' : '') + (v.pending && iso === v.pending.cursor ? ' is-cursor' : '') });
+        const dayItems0 = byDay.get(iso) || [];
+        const cell = week.createDiv({
+          cls: 'dn-day' + (d.month() !== curMonth ? ' is-other' : '') + (iso === todayIso ? ' is-today' : '') + (iso === v.anchor ? ' is-sel' : '') + (v.pending && iso === v.pending.cursor ? ' is-cursor' : ''),
+          attr: {
+            role: 'gridcell',
+            'aria-label': cap(d.format('dddd, D MMMM')) + (dayItems0.length ? ' — ' + dayItems0.length : ''),
+            'aria-selected': String(iso === v.anchor),
+          },
+        });
         cell.dataset.iso = iso;
         const head = cell.createDiv({ cls: 'dn-day-head' });
         head.createSpan({ cls: 'dn-day-num', text: String(d.date()) });
@@ -1552,15 +1851,40 @@ class CalendarRenderer {
 
         const chips = cell.createDiv({ cls: 'dn-day-chips' });
         const dayItems = byDay.get(iso) || [];
-        const max = 4;
+        // A cap, not a measurement. The row is `minmax(78px, 1fr)` inside a month with no
+        // height of its own, so a cell GROWS to whatever it holds — there is no clipped
+        // height to measure "what fits" against, and one busy day would stretch the whole
+        // week. The cap is a setting instead, so a big screen can simply raise it.
+        const max = Math.max(1, Math.min(20, Number(this.plugin.settings.monthChips) || 4));
         dayItems.slice(0, max).forEach((it) => this.buildChip(chips, it, 'date'));
         if (dayItems.length > max) {
-          const more = chips.createDiv({ cls: 'dn-more', text: t('more', dayItems.length - max) });
-          more.addEventListener('click', (e) => { e.stopPropagation(); v.view = 'day'; v.anchor = iso; this.model.settings.view = 'day'; this.render(); this.schedulePersist(); });
+          const hidden = dayItems.slice(max);
+          const more = chips.createDiv({ cls: 'dn-more', text: t('more', hidden.length) });
+          more.addEventListener('click', (e) => { e.stopPropagation(); this.openDayList(iso, hidden, e); });
         }
       }
       this.buildWeekBars(week, weekStartM, spans);
     }
+  }
+
+  /* "+N more": the rest of the day, right there. It used to throw you into day view, which
+   * lost the month you were reading just to see two more titles. */
+  openDayList(iso, hidden, evt) {
+    const menu = new Menu();
+    for (const it of hidden) {
+      const when = it.allDay ? t('allDay') : (it.segStart || it.start);
+      menu.addItem((i) => i
+        .setTitle(when + ' · ' + (it.title || '…'))
+        .setIcon(it.task ? (it.done ? 'check-square' : 'square') : 'dot')
+        .onClick(() => this.onItemClick(it)));
+    }
+    menu.addSeparator();
+    menu.addItem((i) => i.setTitle(t('v_day')).setIcon('calendar-clock').onClick(() => {
+      this.view().anchor = iso;
+      this.setView('day');
+    }));
+    if (evt && typeof evt.clientX === 'number') menu.showAtMouseEvent(evt);
+    else menu.showAtPosition({ x: 0, y: 0 });
   }
 
   /* Clip spans to the [startM, startM+cols) day range and stack them into lanes —
@@ -1620,6 +1944,11 @@ class CalendarRenderer {
     });
     this.attachItemMenu(bar, g.it, true);
     this.enableEventDrag(bar, g.it, 'date');
+    // A multi-day event is ONLY a bar in month view, so without this it would be the one
+    // thing the keyboard could never reach. Claim it if the selected day falls under it.
+    const anchor = this.view().anchor;
+    const barEnd = moment(g.sIso, 'YYYY-MM-DD').add(days - 1, 'day').format('YYYY-MM-DD');
+    if (anchor >= g.sIso && anchor <= barEnd) this.registerSelectable(bar, g.it, anchor);
     // Resize a multi-day span by its ends — but only on a REAL end (not a clip where it continues
     // into the next week/out of view) and not for a recurring span (its occurrences are edited).
     // Left handle moves the start date, right handle moves the end date; each snaps to a day cell.
@@ -1661,12 +1990,19 @@ class CalendarRenderer {
     // stack the native tooltip on top of it. The note joins with a dash: Obsidian's tooltip
     // doesn't render newlines.
     const full = ((it.allDay ? '' : it.start + (it.end ? '–' + it.end : '') + ' ') + (it.title || '')).trim()
+      + (crossesMidnight(it) ? ' (' + t('nextDay') + ')' : '')
       + (it.note ? ' — ' + it.note : ''); // the note lives in the tooltip — the cell is too narrow to show it
-    const chip = parent.createDiv({ cls: this.itemCls('dn-chip', it), attr: { 'aria-label': full } }); // hover/AT = full text (dot chips have no other label)
+    const chip = parent.createDiv({ cls: this.itemCls('dn-chip', it) + (it.spill ? ' dn-spill dn-spill-' + it.spill : ''), attr: { 'aria-label': full } }); // hover/AT = full text (dot chips have no other label)
     if (it.task) this.buildCheck(chip, it, 'dn-chip-check');
+    // The tail of an event that started the previous evening: an arrow, not "23" — that hour
+    // belongs to yesterday and reading it here is actively misleading.
+    else if (it.spill === 'tail') chip.createSpan({ cls: 'dn-chip-hour dn-chip-cont', text: '↳' });
     else if (!it.allDay && it.start) chip.createSpan({ cls: 'dn-chip-hour', text: String(Number(it.start.slice(0, 2))) }); // start hour, no leading zero
     else chip.createSpan({ cls: 'dn-chip-dot' });
     chip.createSpan({ cls: 'dn-chip-title', text: it.title || '…' });
+    // The day this chip is drawn on — a span shows on several, so read it off the cell.
+    const dayCell = parent.closest && parent.closest('[data-iso]');
+    this.registerSelectable(chip, it, dayCell ? dayCell.dataset.iso : null);
     chip.addEventListener('click', (e) => {
       e.stopPropagation();
       // Placement mode: the user is aiming at the DAY under the chip, not at the chip —
@@ -1679,6 +2015,7 @@ class CalendarRenderer {
     });
     this.attachItemMenu(chip, it, !!dragKind);
     if (dragKind) this.enableEventDrag(chip, it, dragKind);
+    return chip;
   }
 
   /* ---- AGENDA VIEW: a mini month calendar with event dots + a selected-day panel ---- */
@@ -1749,7 +2086,11 @@ class CalendarRenderer {
   buildAgendaItem(parent, it, dayIso) {
     const row = parent.createDiv({ cls: this.itemCls('dn-ag-item', it) });
     this.buildCheck(row, it);
-    const time = row.createSpan({ cls: 'dn-ag-time', text: it.allDay ? t('allDay') : (it.start + (it.end ? '–' + it.end : '')) });
+    const time = row.createSpan({
+      cls: 'dn-ag-time',
+      text: it.allDay ? t('allDay')
+        : (it.start + (it.end ? '–' + it.end + (crossesMidnight(it) ? ' (' + t('nextDay') + ')' : '') : '')),
+    });
     const main = row.createDiv({ cls: 'dn-ag-main' });
     main.createDiv({ cls: 'dn-ag-title', text: it.title || '…' });
     if (it.note) this.renderNoteText(main.createDiv({ cls: 'dn-ag-note' }), it.note); // shown in full (multi-line) so its links are clickable — no tooltip needed
@@ -1769,6 +2110,8 @@ class CalendarRenderer {
     if (draggable) row.dataset.iso = dayIso || it.date; // grab day for the drag delta
     this.attachItemMenu(row, it, draggable);
     if (draggable) this.enableEventDrag(row, it, 'date');
+    this.registerSelectable(row, it, dayIso || it.date);
+    return row;
   }
 
   /* Render an event's description, turning links into clickable elements (the rest stays plain
@@ -1815,12 +2158,6 @@ class CalendarRenderer {
   renderTimeGrid(body, dayMoments) {
     const v = this.view();
     const s = this.plugin.settings;
-    const dayStart = Math.max(0, Math.min(23, s.dayStart));
-    const dayEnd = Math.max(dayStart + 1, Math.min(24, s.dayEnd));
-    const dayStartMin = dayStart * 60, dayEndMin = dayEnd * 60;
-    this._timeGridInfo = { cols: new Map(), dayStartMin, dayEndMin }; // for the minute ticker
-    // Keyboard slot cursor: null = the all-day band; clamp a stale hour into the visible window.
-    if (typeof v.selSlot === 'number' && (v.selSlot < dayStart || v.selSlot >= dayEnd)) v.selSlot = null;
 
     const from = dayMoments[0].format('YYYY-MM-DD');
     const to = dayMoments[dayMoments.length - 1].format('YYYY-MM-DD');
@@ -1829,6 +2166,30 @@ class CalendarRenderer {
     const spans = items.filter(isSpanItem);
     const byDay = this.bucketByDay(items.filter((it) => !isSpanItem(it)), from, to);
     const todayIso = isoToday();
+
+    // The configured day window is a PREFERENCE, not a clip. It used to be a hard crop: an event
+    // outside it was squeezed into a sliver against the edge while its label still read 06:00 —
+    // several events could pile up there invisibly. Grow the window to cover whatever the visible
+    // days actually hold; on days that fit, it stays exactly as configured.
+    let dayStart = Math.max(0, Math.min(23, s.dayStart));
+    let dayEnd = Math.max(dayStart + 1, Math.min(24, s.dayEnd));
+    for (const d of dayMoments) {
+      for (const it of byDay.get(d.format('YYYY-MM-DD')) || []) {
+        if (it.allDay) continue;
+        const sMin = timeToMin(it.segStart || it.start);
+        const eMin = segEndMin(it);
+        if (sMin != null) dayStart = Math.min(dayStart, Math.floor(sMin / 60));
+        if (eMin != null) dayEnd = Math.max(dayEnd, Math.ceil(eMin / 60));
+      }
+    }
+    dayStart = Math.max(0, dayStart);
+    dayEnd = Math.min(24, Math.max(dayStart + 1, dayEnd));
+    const dayStartMin = dayStart * 60, dayEndMin = dayEnd * 60;
+    // The one source of truth for the drawn window: the minute ticker AND every drag/resize
+    // computation read it back through hourWindow(), so a grown grid can't disagree with them.
+    this._timeGridInfo = { cols: new Map(), dayStartMin, dayEndMin };
+    // Keyboard slot cursor: null = the all-day band; clamp a stale hour into the visible window.
+    if (typeof v.selSlot === 'number' && (v.selSlot < dayStart || v.selSlot >= dayEnd)) v.selSlot = null;
 
     const grid = body.createDiv({ cls: 'dn-timegrid' + (dayMoments.length === 1 ? ' is-day' : '') });
     this.armGridKeys(grid);
@@ -1841,7 +2202,7 @@ class CalendarRenderer {
       const h = colhead.createDiv({ cls: 'dn-tg-dayhead' + (iso === todayIso ? ' is-today' : '') });
       h.createSpan({ cls: 'dn-tg-dow', text: cap(d.format('ddd')) });
       const num = h.createSpan({ cls: 'dn-tg-daynum', text: String(d.date()) });
-      num.addEventListener('click', () => { const v = this.view(); v.view = 'day'; v.anchor = iso; this.render(); this.schedulePersist(); });
+      num.addEventListener('click', () => { this.view().anchor = iso; this.setView('day'); this.render(); });
     }
 
     // all-day gutter — single-day items are chips in their day cell; multi-day spans draw
@@ -1896,14 +2257,22 @@ class CalendarRenderer {
         // The note now shows inside the block (a muted line under the title) when it fits — the
         // block clips it and the hover tooltip still carries the full text (aria-label only, so a
         // single Obsidian tooltip, never the native one stacked on top).
-        const tip = (it.start + (it.end ? '–' + it.end : '') + ' ' + (it.title || '')).trim()
-          + (it.note ? ' — ' + it.note : '');
-        const block = col.createDiv({ cls: this.itemCls('dn-ev', it), attr: { 'aria-label': tip } });
+        const overnight = crossesMidnight(it);
+        const timeLabel = it.start + (it.end ? '–' + it.end : '') + (overnight ? ' (' + t('nextDay') + ')' : '');
+        const tip = (timeLabel + ' ' + (it.title || '')).trim() + (it.note ? ' — ' + it.note : '');
+        const block = col.createDiv({
+          cls: this.itemCls('dn-ev', it) + (it.spill ? ' dn-spill dn-spill-' + it.spill : ''),
+          attr: { 'aria-label': tip },
+        });
         block.style.top = L.topPct + '%';
         block.style.height = L.heightPct + '%';
         block.style.left = L.leftPct + '%';
         block.style.width = 'calc(' + L.widthPct + '% - 3px)';
-        block.createSpan({ cls: 'dn-ev-time', text: it.start + (it.end ? '–' + it.end : '') });
+        // Same checkbox as the agenda row: the time grid used to be the one view where an item
+        // could not be ticked at all, so "can I complete it here?" depended on which view you
+        // happened to be in. (Month cells stay dots-and-hours — two lines of room, no space.)
+        this.buildCheck(block, it, 'dn-ev-check');
+        block.createSpan({ cls: 'dn-ev-time', text: timeLabel });
         block.createSpan({ cls: 'dn-ev-title', text: it.title || '…' });
         if (it.note) this.renderNoteText(block.createSpan({ cls: 'dn-ev-note' }), it.note);
         block.addEventListener('click', (e) => {
@@ -1913,8 +2282,13 @@ class CalendarRenderer {
           this.onItemClick(it);
         });
         this.attachItemMenu(block, it, true);
-        this.enableEventDrag(block, it, 'timed');
-        if (!it.repeat) { // recurring events are edited via the editor, not resized per-occurrence
+        this.registerSelectable(block, it, iso);
+        // The tail half of an overnight event sits on a day the event does not start on — a timed
+        // drag there would rewrite the start against the wrong day. Grab it by its head instead.
+        if (it.spill !== 'tail') this.enableEventDrag(block, it, 'timed');
+        // Recurring occurrences are edited via the editor, not resized. Neither half of an
+        // overnight event can be resized in place: the edge being dragged lives on the other day.
+        if (!it.repeat && !it.spill) {
           const topHandle = block.createDiv({ cls: 'dn-ev-resize-top', attr: { 'aria-label': t('e_time') } });
           this.enableEventResizeTop(block, topHandle, it, dayStartMin, dayEndMin);
           const handle = block.createDiv({ cls: 'dn-ev-resize', attr: { 'aria-label': t('e_end') } });
@@ -1975,6 +2349,18 @@ class CalendarRenderer {
     this.mutate((m) => {
       const ev = find(m, it.baseId);
       if (!ev) return;
+      // A repeating EVENT: tick THIS occurrence, leave the series alone. Rolling the base date
+      // forward (the task model below) would delete every earlier occurrence from the calendar —
+      // a meeting you attended is history, not a to-do that disappears once it's done.
+      if (ev.repeat && !ev.task) {
+        if (ev.done) { ev.done = false; ev.completedAt = null; return; } // whole series un-finished
+        const iso = it.date || ev.date;
+        const set = new Set(ev.doneDates || []);
+        if (set.has(iso)) set.delete(iso);
+        else { set.add(iso); completed = true; }
+        ev.doneDates = set.size ? Array.from(set).sort() : null;
+        return;
+      }
       if (ev.repeat) {
         if (ev.done) {
           // A FINISHED series (completed past its until) — un-ticking revives it.
@@ -2076,7 +2462,10 @@ class CalendarRenderer {
     // drop two weeks of gym sessions without touching the series before and after.
     if (it.repeat) menu.addItem((i) => i.setTitle(t('m_skip')).setIcon('calendar-x').onClick(() => this.skipOccurrence(it)));
     menu.addItem((i) => i.setTitle(it.repeat ? t('m_deleteSeries') : t('m_delete')).setIcon('trash-2').onClick(() => this.deleteEvent(it)));
-    menu.showAtMouseEvent(evt);
+    // A real pointer event positions itself; the keyboard path (M on a selected item)
+    // hands in the item's own box instead.
+    if (evt && typeof evt.clientX === 'number') menu.showAtMouseEvent(evt);
+    else menu.showAtPosition({ x: (evt && evt.x) || 0, y: (evt && evt.y) || 0 });
   }
 
   /* "Delete this occurrence": add the clicked date to the repeat's skip list. */
@@ -2252,7 +2641,10 @@ class CalendarRenderer {
               ghost = cell.createDiv({ cls: 'dn-drag-ghost' });
             }
             ghost.style.top = ((spot.startMin - spot.dayStartMin) / spot.range) * 100 + '%';
-            ghost.style.height = (spot.dur / spot.range) * 100 + '%';
+            // An overnight drop runs off the bottom of the column — show it reaching the edge
+            // rather than letting the ghost spill outside the day.
+            const visible = Math.min(spot.dur, spot.dayStartMin + spot.range - spot.startMin);
+            ghost.style.height = (visible / spot.range) * 100 + '%';
             ghost.setText(spot.start + '–' + spot.end);
           } else {
             clearGhost();
@@ -2316,18 +2708,23 @@ class CalendarRenderer {
   /* Where a timed drag over `cell` at `clientY` would land — the snap/clamp math shared
    * by the live ghost preview and the actual drop, so the preview can never lie. */
   timedDropSpot(it, cell, clientY) {
-    const s = this.plugin.settings;
-    const dayStart = Math.max(0, Math.min(23, s.dayStart));
-    const dayEnd = Math.max(dayStart + 1, Math.min(24, s.dayEnd));
-    const dayStartMin = dayStart * 60, dayEndMin = dayEnd * 60, range = dayEndMin - dayStartMin;
+    const { dayStartMin, dayEndMin } = this.hourWindow();
+    const range = dayEndMin - dayStartMin;
     const r = cell.getBoundingClientRect();
     const frac = Math.max(0, Math.min(1, (clientY - r.top) / r.height));
     const mins = Math.round((dayStartMin + frac * range) / CFG.snap) * CFG.snap; // snap to the grid step
-    const origStart = timeToMin(it.start);
     const hadEnd = it.end != null;
-    const dur = hadEnd ? Math.max(15, timeToMin(it.end) - origStart) : CFG.defaultDur;
-    const startMin = Math.max(dayStartMin, Math.min(dayEndMin - dur, mins));
-    return { dayStartMin, range, startMin, dur, hadEnd, start: minToTime(startMin), end: minToTime(startMin + dur) };
+    // Wrapping duration: an overnight event is 3 hours long, not minus twenty-one.
+    const dur = hadEnd ? Math.max(15, durationMin(it.start, it.end) || CFG.defaultDur) : CFG.defaultDur;
+    // A normal event must finish inside the window; an overnight one already ends on the next
+    // day, so only its START is constrained — otherwise it could never be dropped late again.
+    const lastStart = crossesMidnight(it) ? dayEndMin - CFG.snap : dayEndMin - dur;
+    const startMin = Math.max(dayStartMin, Math.min(Math.max(dayStartMin, lastStart), mins));
+    return {
+      dayStartMin, range, startMin, dur, hadEnd,
+      start: minToTime(startMin),
+      end: minToTime((startMin + dur) % DAY_MIN),
+    };
   }
 
   dropTimed(it, cell, targetIso, clientY, copy) {
@@ -2500,7 +2897,10 @@ class CalendarRenderer {
       const col = block.parentElement; // .dn-tg-col — its box maps Y → minutes
       if (!col) return;
       const range = Math.max(1, dayEndMin - dayStartMin);
-      const endMin = it.end != null ? timeToMin(it.end) : ((timeToMin(it.start) || 0) + CFG.defaultDur);
+      const rawEnd = it.end != null ? timeToMin(it.end) : ((timeToMin(it.start) || 0) + CFG.defaultDur);
+      // An end of 00:00 means the bottom of THIS day; read as minute 0 it would put the cap
+      // below the day start and slam the new start against the top of the grid.
+      const endMin = rawEnd === 0 ? DAY_MIN : rawEnd;
       let startMin = timeToMin(it.start);
       if (startMin == null || endMin == null) return;
       let moved = false;
@@ -2543,7 +2943,8 @@ class CalendarRenderer {
         const startStr = minToTime(startMin);
         if (startStr === it.start) return;
         // Commit the end too: it may have been materialized from the default when it.end was null.
-        const endStr = minToTime(endMin);
+        const endStr = endMin === DAY_MIN ? '00:00' : minToTime(endMin); // keep midnight as midnight
+
         this.mutate((m) => { const ev = find(m, it.baseId); if (ev) { ev.start = startStr; ev.end = endStr; } });
       };
       this._activeDrags.add(cleanup);
@@ -2648,10 +3049,11 @@ function returnFocusToGrid(renderer) {
   if (g && g.isConnected && !renderer.view().pending) g.focus({ preventScroll: true });
 }
 
-/* Sort items within a day: all-day first, then by start time, then by title. */
+/* Sort items within a day: all-day first, then by start time, then by title. The tail half of an
+ * event that ran past midnight sorts by its segment start (00:00), not by the previous evening. */
 function cmpItems(a, b) {
   if (a.allDay !== b.allDay) return a.allDay ? -1 : 1;
-  const ka = a.start || '', kb = b.start || '';
+  const ka = a.segStart || a.start || '', kb = b.segStart || b.start || '';
   return ka.localeCompare(kb) || (a.title || '').localeCompare(b.title || '');
 }
 
@@ -2786,17 +3188,26 @@ class EventModal extends Modal {
     const startInput = timeRow.createEl('input', { cls: 'dn-in dn-in-time', attr: { type: 'time', value: state.start } });
     startInput.addEventListener('change', () => {
       // Moving the start drags the end along, preserving the duration — a 14:00–15:30
-      // meeting moved to 16:00 becomes 16:00–17:30, not 16:00–15:30 (clamped at 23:59).
+      // meeting moved to 16:00 becomes 16:00–17:30, not 16:00–15:30. A 23:00 start wraps the
+      // end past midnight instead of being flattened against 23:59.
       const oldS = timeToMin(state.start), oldE = timeToMin(state.end), newS = timeToMin(startInput.value);
       state.start = startInput.value;
       if (oldS != null && oldE != null && newS != null && oldE > oldS) {
-        state.end = minToTime(Math.min(24 * 60 - 1, newS + (oldE - oldS)));
+        state.end = minToTime((newS + (oldE - oldS)) % DAY_MIN);
         endInput.value = state.end;
       }
+      syncOvernight();
     });
     timeRow.createSpan({ cls: 'dn-row-dash', text: '–' });
     const endInput = timeRow.createEl('input', { cls: 'dn-in dn-in-time', attr: { type: 'time', value: state.end } });
-    endInput.addEventListener('change', () => { state.end = endInput.value; });
+    // An end before the start is legal now — it means the next morning. Say so, so nobody
+    // reads "23:00 – 02:00" as a typo the dialog was about to silently repair.
+    const overnightTag = timeRow.createSpan({ cls: 'dn-overnight-tag dn-hide', text: t('nextDay') });
+    const syncOvernight = () => {
+      overnightTag.toggleClass('dn-hide', !crossesMidnight({ start: normTime(state.start), end: normTime(state.end) }));
+    };
+    endInput.addEventListener('change', () => { state.end = endInput.value; syncOvernight(); });
+    syncOvernight();
 
     // Row 4 — end date (all-day multi-day)
     const endDateRow = contentEl.createDiv({ cls: 'dn-row' });
@@ -2891,11 +3302,13 @@ class EventModal extends Modal {
       if (this.ev) {
         fields.done = state.done;
         fields.completedAt = state.done ? (this.ev.completedAt || isoToday()) : null;
-        // Completing a recurring event advances the series to its next occurrence instead of
+        // Completing a recurring TASK advances the series to its next occurrence instead of
         // marking the base done — mirrors ticking the checkbox in the grid (toggleDone). Only on
         // the done TRANSITION: a series already finished (done past its until) must not roll
-        // again on every save. At the series end, finish it as a whole instead.
-        if (fields.repeat && state.done && !this.ev.done) {
+        // again on every save. At the series end, finish it as a whole instead. A recurring
+        // EVENT never rolls here: this dialog edits the series, so Done means "the whole series
+        // is over" — single occurrences are ticked in the grid (they go into doneDates).
+        if (fields.repeat && fields.task && state.done && !this.ev.done) {
           let rep = normalizeRepeat(fields.repeat) || fields.repeat;
           if ((rep.unit === 'month' || rep.unit === 'year') && typeof rep.day !== 'number') {
             const base = moment(fields.date, 'YYYY-MM-DD', true);
@@ -3067,7 +3480,7 @@ class QuickCreateModal extends Modal {
       // user typed a different start, the drawn end shifts along keeping the drawn length.
       if (!isTask && start && !end && this.opts.end && this.opts.start) {
         const dur = timeToMin(this.opts.end) - timeToMin(this.opts.start);
-        if (dur > 0) end = minToTime(Math.min(24 * 60 - 1, timeToMin(start) + dur));
+        if (dur > 0) end = minToTime((timeToMin(start) + dur) % DAY_MIN); // wraps rather than flattening to 23:59
       }
       this.live().addEvent({ title, date: this.dateIso, start: isTask ? null : start, end: isTask ? null : end, task: isTask });
       this.close();
@@ -3111,6 +3524,201 @@ class QuickCreateModal extends Modal {
     this.contentEl.empty();
     returnFocusToGrid(this.live());
   }
+}
+
+/* The date this event next lands on, at or after fromIso — a plain event's own date, a series'
+ * next live occurrence. Used to order search hits by "when will I actually see this". */
+function nextOccurrenceDate(ev, fromIso) {
+  if (!ev.repeat || ev.date >= fromIso) return ev.date;
+  const horizon = moment(fromIso, 'YYYY-MM-DD').add(400, 'day').format('YYYY-MM-DD');
+  const insts = expandInstances(ev, fromIso, horizon);
+  return insts.length ? insts[0].date : ev.date;
+}
+
+/* ------------------------------------------------------------------ *
+ * Search — find an event by title or description, jump to its date    *
+ * ------------------------------------------------------------------ */
+class SearchModal extends Modal {
+  constructor(app, renderer) { super(app); this.renderer = renderer; this.sel = 0; this.hits = []; }
+
+  live() {
+    const r = this.renderer;
+    return (r.plugin.liveRenderers && r.plugin.liveRenderers.get(r.stateKey())) || r;
+  }
+
+  onOpen() {
+    const { contentEl, titleEl } = this;
+    contentEl.addClass('dn-modal');
+    if (this.modalEl) this.modalEl.addClass('dn-event-modal');
+    titleEl.setText(t('search'));
+    this.input = contentEl.createEl('input', { cls: 'dn-in dn-grow dn-search-in', attr: { type: 'text', placeholder: t('searchPlaceholder') } });
+    this.countEl = contentEl.createDiv({ cls: 'dn-search-count' });
+    this.listEl = contentEl.createDiv({ cls: 'dn-search-list' });
+    this.input.addEventListener('input', () => { this.sel = 0; this.renderList(); });
+    this.input.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); this.move(1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); this.move(-1); }
+      // Enter goes to the date; Ctrl/Cmd+Enter opens the event itself, which is what you
+      // want when the search was "where did I put that thing" rather than "take me there".
+      else if (e.key === 'Enter') { e.preventDefault(); this.commit(this.hits[this.sel], e.ctrlKey || e.metaKey); }
+    });
+    setTimeout(() => this.input.focus(), 0);
+    this.renderList();
+  }
+
+  /* Search the BASE events, not the expanded instances: a weekly series is one hit, dated by its
+   * next live occurrence. Upcoming first (soonest at the top), then the past, most recent first. */
+  search(q) {
+    const needle = q.trim().toLowerCase();
+    const today = isoToday();
+    const events = (this.live().model && this.live().model.events) || [];
+    const hits = [];
+    for (const ev of events) {
+      if (needle && ((ev.title || '') + ' ' + (ev.note || '')).toLowerCase().indexOf(needle) < 0) continue;
+      hits.push({ ev, when: nextOccurrenceDate(ev, today) || ev.date });
+    }
+    hits.sort((a, b) => {
+      const ap = a.when < today ? 1 : 0, bp = b.when < today ? 1 : 0;
+      if (ap !== bp) return ap - bp;
+      return ap ? b.when.localeCompare(a.when) : a.when.localeCompare(b.when);
+    });
+    return hits.slice(0, 80);
+  }
+
+  renderList() {
+    this.hits = this.search(this.input.value);
+    this.countEl.setText(this.hits.length ? t('searchHint', this.hits.length) : '');
+    const list = this.listEl;
+    list.empty();
+    if (!this.hits.length) { list.createDiv({ cls: 'dn-empty', text: t('searchEmpty') }); return; }
+    this.rowEls = this.hits.map((hit, i) => {
+      const ev = hit.ev;
+      const row = list.createDiv({ cls: 'dn-search-row' + (i === this.sel ? ' is-sel' : '') + (ev.color ? ' dn-c-' + ev.color : '') + (ev.done ? ' is-done' : '') });
+      row.createSpan({ cls: 'dn-search-date', text: cap(moment(hit.when, 'YYYY-MM-DD').format('D MMM YYYY')) });
+      const main = row.createDiv({ cls: 'dn-search-main' });
+      main.createDiv({ cls: 'dn-search-title', text: (ev.start ? ev.start + ' ' : '') + (ev.title || '…') });
+      const sub = [ev.repeat ? repeatLabel(ev.repeat) : '', ev.note || ''].filter(Boolean).join(' · ');
+      if (sub) main.createDiv({ cls: 'dn-search-sub', text: sub });
+      row.addEventListener('click', (e) => this.commit(hit, e.ctrlKey || e.metaKey));
+      const edit = row.createSpan({ cls: 'dn-search-edit', attr: { role: 'button', tabindex: '-1', 'aria-label': t('m_edit') } });
+      setIcon(edit, 'pencil');
+      edit.addEventListener('click', (e) => { e.stopPropagation(); this.commit(hit, true); });
+      return row;
+    });
+  }
+
+  move(dir) {
+    if (!this.hits.length) return;
+    this.sel = (this.sel + dir + this.hits.length) % this.hits.length;
+    (this.rowEls || []).forEach((el, i) => el.toggleClass('is-sel', i === this.sel));
+    const el = (this.rowEls || [])[this.sel];
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+  }
+
+  /* Jumping is enough for most hits: every view renders the day it lands on, so the event is
+   * right there. `edit` also opens it, for when finding it was only the first half of the job. */
+  commit(hit, edit) {
+    if (!hit) return;
+    this.close();
+    const r = this.live();
+    r.goToDate(hit.when || hit.ev.date);
+    if (edit) {
+      const ev = find(r.model, hit.ev.id); // re-resolve: the model may have been reparsed
+      if (ev) r.openEditor(ev);
+    }
+  }
+
+  onClose() { this.contentEl.empty(); returnFocusToGrid(this.live()); }
+}
+
+/* ------------------------------------------------------------------ *
+ * Calendar name                                                       *
+ * ------------------------------------------------------------------ */
+class TitleModal extends Modal {
+  constructor(app, renderer) { super(app); this.renderer = renderer; }
+
+  live() {
+    const r = this.renderer;
+    return (r.plugin.liveRenderers && r.plugin.liveRenderers.get(r.stateKey())) || r;
+  }
+
+  onOpen() {
+    const { contentEl, titleEl } = this;
+    contentEl.addClass('dn-modal');
+    if (this.modalEl) this.modalEl.addClass('dn-event-modal');
+    titleEl.setText(t('calTitle'));
+    contentEl.createDiv({ cls: 'dn-quick-hint', text: t('calTitleHint') });
+    const row = contentEl.createDiv({ cls: 'dn-row' });
+    const cur = (this.live().model && this.live().model.title) || '';
+    const input = row.createEl('input', { cls: 'dn-in dn-grow', attr: { type: 'text', value: cur, placeholder: t('calTitle') } });
+    setTimeout(() => { input.focus(); input.select(); }, 0);
+    const commit = () => {
+      const val = input.value.trim();
+      if (val !== cur) this.live().mutate((m) => { m.title = val; });
+      this.close();
+    };
+    const foot = contentEl.createDiv({ cls: 'dn-modal-foot' });
+    foot.createDiv({ cls: 'dn-foot-spacer' });
+    foot.createEl('button', { text: t('cancel') }).addEventListener('click', () => this.close());
+    foot.createEl('button', { cls: 'mod-cta', text: t('save') }).addEventListener('click', commit);
+    contentEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); commit(); } });
+  }
+
+  onClose() { this.contentEl.empty(); returnFocusToGrid(this.live()); }
+}
+
+/* ------------------------------------------------------------------ *
+ * Quarantined records — the ones with no usable date (see normalizeCal)*
+ * ------------------------------------------------------------------ */
+class OrphanModal extends Modal {
+  constructor(app, renderer) { super(app); this.renderer = renderer; }
+
+  live() {
+    const r = this.renderer;
+    return (r.plugin.liveRenderers && r.plugin.liveRenderers.get(r.stateKey())) || r;
+  }
+
+  onOpen() {
+    const { contentEl, titleEl } = this;
+    contentEl.addClass('dn-modal');
+    if (this.modalEl) this.modalEl.addClass('dn-event-modal');
+    titleEl.setText(t('orphanTitle'));
+    contentEl.createDiv({ cls: 'dn-orphan-hint', text: t('orphanHint') });
+    this.listEl = contentEl.createDiv({ cls: 'dn-orphan-list' });
+    this.renderList();
+    const foot = contentEl.createDiv({ cls: 'dn-modal-foot' });
+    foot.createDiv({ cls: 'dn-foot-spacer' });
+    foot.createEl('button', { cls: 'mod-cta', text: t('cancel') }).addEventListener('click', () => this.close());
+  }
+
+  /* Rows are addressed by the serialized raw record, not by index or object identity: a
+   * mutation re-parses the block, so both of those change underneath an open dialog. */
+  renderList() {
+    const list = this.listEl;
+    list.empty();
+    const orphans = (this.live().model && this.live().model.orphans) || [];
+    if (!orphans.length) { list.createDiv({ cls: 'dn-empty', text: t('orphanEmpty') }); return; }
+    for (const raw of orphans) {
+      const key = JSON.stringify(raw);
+      const row = list.createDiv({ cls: 'dn-orphan-row' });
+      const main = row.createDiv({ cls: 'dn-orphan-main' });
+      main.createDiv({ cls: 'dn-orphan-title', text: String(raw.title || raw.text || '…') });
+      const rawDate = raw.date != null ? raw.date : raw.due;
+      main.createDiv({ cls: 'dn-orphan-raw', text: rawDate ? String(rawDate) : t('orphanNoDate') });
+      const dateIn = row.createEl('input', { cls: 'dn-in', attr: { type: 'date', value: isoToday() } });
+      const place = row.createEl('button', { cls: 'mod-cta', text: t('orphanRestore') });
+      place.addEventListener('click', () => {
+        const iso = toIsoDate(dateIn.value);
+        if (!iso) { dateIn.focus(); return; }
+        this.live().adoptOrphan(key, iso);
+        this.renderList();
+      });
+      row.createEl('button', { cls: 'mod-warning', text: t('m_delete') })
+        .addEventListener('click', () => { this.live().dropOrphan(key); this.renderList(); });
+    }
+  }
+
+  onClose() { this.contentEl.empty(); returnFocusToGrid(this.live()); }
 }
 
 /* ------------------------------------------------------------------ *
@@ -3168,17 +3776,16 @@ class MdCalendarSettingTab extends PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    const ru = LANG === 'ru';
 
     new Setting(containerEl)
-      .setName(ru ? 'Вид по умолчанию (десктоп)' : 'Default view (desktop)')
+      .setName(t('s_viewDesktop'))
       .addDropdown((d) => {
         VIEW_CYCLE.forEach((v) => d.addOption(v, t('v_' + v)));
         d.setValue(this.plugin.settings.firstView).onChange(async (v) => { this.plugin.settings.firstView = v; await this.plugin.saveSettings(); });
       });
 
     new Setting(containerEl)
-      .setName(ru ? 'Вид по умолчанию (мобильный)' : 'Default view (mobile)')
+      .setName(t('s_viewMobile'))
       .addDropdown((d) => {
         MOBILE_VIEWS.forEach((v) => d.addOption(v, t('v_' + v))); // phones get agenda + day only
         const cur = MOBILE_VIEWS.includes(this.plugin.settings.firstViewMobile) ? this.plugin.settings.firstViewMobile : 'agenda';
@@ -3186,9 +3793,9 @@ class MdCalendarSettingTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName(ru ? 'Первый день недели' : 'First day of week')
+      .setName(t('s_fdow'))
       .addDropdown((d) => {
-        d.addOption('-1', ru ? 'Как в языке Obsidian' : 'Follow Obsidian locale');
+        d.addOption('-1', t('s_fdowAuto'));
         for (const n of [1, 6, 0]) d.addOption(String(n), cap(moment.weekdays()[n])); // Mon, Sat, Sun
         d.setValue(String(this.plugin.settings.firstDayOfWeek)).onChange(async (v) => {
           this.plugin.settings.firstDayOfWeek = Number(v);
@@ -3197,14 +3804,14 @@ class MdCalendarSettingTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName(ru ? 'Длительность нового события (мин)' : 'New event duration (min)')
+      .setName(t('s_dur'))
       .addSlider((sl) => sl.setLimits(15, 240, 15).setDynamicTooltip().setValue(this.plugin.settings.defaultDurationMin).onChange(async (v) => {
         this.plugin.settings.defaultDurationMin = v;
         await this.plugin.saveSettings();
       }));
 
     new Setting(containerEl)
-      .setName(ru ? 'Шаг перетаскивания и растяжения (мин)' : 'Drag and resize step (min)')
+      .setName(t('s_snap'))
       .addDropdown((d) => {
         [15, 30, 60].forEach((n) => d.addOption(String(n), String(n)));
         d.setValue(String(this.plugin.settings.snapMin)).onChange(async (v) => {
@@ -3214,8 +3821,8 @@ class MdCalendarSettingTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName(ru ? 'Звук выполнения' : 'Completion sound')
-      .setDesc(ru ? 'Короткий сигнал при отметке «выполнено».' : 'A short chime when you tick something done.')
+      .setName(t('s_sound'))
+      .setDesc(t('s_soundDesc'))
       .addToggle((tg) => tg.setValue(!!this.plugin.settings.completionSound).onChange(async (v) => {
         this.plugin.settings.completionSound = v;
         if (v) playDoneSound(); // instant preview
@@ -3227,7 +3834,8 @@ class MdCalendarSettingTab extends PluginSettingTab {
     // it fires on every drag step, and rebuilding the tab mid-drag yanks the knob away.
     let startSlider, endSlider;
     new Setting(containerEl)
-      .setName(ru ? 'Начало дня (час)' : 'Day starts at (hour)')
+      .setName(t('s_dayStart'))
+      .setDesc(t('s_hoursDesc'))
       .addSlider((sl) => {
         startSlider = sl;
         sl.setLimits(0, 23, 1).setDynamicTooltip().setValue(this.plugin.settings.dayStart).onChange(async (v) => {
@@ -3241,7 +3849,7 @@ class MdCalendarSettingTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName(ru ? 'Конец дня (час)' : 'Day ends at (hour)')
+      .setName(t('s_dayEnd'))
       .addSlider((sl) => {
         endSlider = sl;
         sl.setLimits(1, 24, 1).setDynamicTooltip().setValue(this.plugin.settings.dayEnd).onChange(async (v) => {
@@ -3255,10 +3863,16 @@ class MdCalendarSettingTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName(ru ? 'Несколько календарей' : 'Multiple calendars')
-      .setDesc(ru
-        ? 'Вкл — кнопка каждый раз создаёт новый календарь. Выкл — календарь один, кнопка открывает его.'
-        : 'On — the button creates a new calendar every time. Off — one calendar, the button opens it.')
+      .setName(t('s_monthChips'))
+      .setDesc(t('s_monthChipsDesc'))
+      .addSlider((sl) => sl.setLimits(2, 10, 1).setDynamicTooltip().setValue(this.plugin.settings.monthChips).onChange(async (v) => {
+        this.plugin.settings.monthChips = v;
+        await this.plugin.saveSettings();
+      }));
+
+    new Setting(containerEl)
+      .setName(t('s_multi'))
+      .setDesc(t('s_multiDesc'))
       .addToggle((tg) => tg.setValue(!!this.plugin.settings.multiCalendar).onChange(async (v) => {
         this.plugin.settings.multiCalendar = v;
         await this.plugin.saveSettings();
@@ -3293,7 +3907,22 @@ class MdCalendarPlugin extends Plugin {
     const loaded = (await this.loadData()) || {};
     this.settings = Object.assign({}, DEFAULT_PLUGIN_SETTINGS);
     for (const k of Object.keys(DEFAULT_PLUGIN_SETTINGS)) { if (k in loaded) this.settings[k] = loaded[k]; }
+    // Own the object rather than sharing the literal in DEFAULT_PLUGIN_SETTINGS.
+    this.settings.viewMemory = (this.settings.viewMemory && typeof this.settings.viewMemory === 'object')
+      ? Object.assign({}, this.settings.viewMemory) : {};
     const hadStale = Object.keys(loaded).some((k) => !(k in DEFAULT_PLUGIN_SETTINGS));
+    // Forget view state for notes that are gone. Deferred to layout-ready: during onload the
+    // vault index isn't populated yet and every lookup would miss, wiping the whole memory.
+    this.app.workspace.onLayoutReady(() => {
+      const mem = this.settings.viewMemory;
+      let pruned = false;
+      for (const key of Object.keys(mem)) {
+        const cut = key.lastIndexOf('::');
+        const path = cut > 0 ? key.slice(0, cut) : '';
+        if (!path || !this.app.vault.getAbstractFileByPath(path)) { delete mem[key]; pruned = true; }
+      }
+      if (pruned) this.saveSettings().catch((e) => console.error('MD Calendar: pruning view memory failed', e));
+    });
     // Live renderer per block (key = sourcePath::calId) so open modals commit to the current
     // renderer even if the block was reprocessed while the modal was open.
     this.liveRenderers = new Map();
@@ -3332,6 +3961,16 @@ class MdCalendarPlugin extends Plugin {
     }));
 
     this.addCommand({ id: 'insert-calendar', name: t('insertCmd'), editorCallback: (editor) => editor.replaceSelection(STARTER_BLOCK) });
+    this.addCommand({
+      id: 'search-events',
+      name: t('searchCmd'),
+      checkCallback: (checking) => {
+        const r = this.activeRenderer();
+        if (!r) return false;
+        if (!checking) r.openSearch();
+        return true;
+      },
+    });
     // Single-calendar mode (default) is open-or-create, so the labels say "open"; the
     // multi-calendar setting flips them back to "create" (applied on plugin reload).
     const noteCmdLabel = t(this.settings.multiCalendar ? 'newNoteCmd' : 'openNoteCmd');
@@ -3348,14 +3987,56 @@ class MdCalendarPlugin extends Plugin {
     this.addSettingTab(new MdCalendarSettingTab(this.app, this));
   }
 
+  onunload() {
+    // Flush a pending view-state save, then let go of everything module-level this plugin owns:
+    // the per-block maps and the lazily created audio context all outlive a disable otherwise.
+    if (this._memTimer) {
+      clearTimeout(this._memTimer);
+      this._memTimer = null;
+      this.saveSettings().catch(() => { /* shutting down */ });
+    }
+    VIEW_STATES.clear();
+    UNDO_STACKS.clear();
+    if (AUDIO_CTX) { try { AUDIO_CTX.close(); } catch (e) { /* already gone */ } AUDIO_CTX = null; }
+  }
+
+  /* The calendar the user is looking at: a block in the active note, else any live one. */
+  activeRenderer() {
+    const file = this.app.workspace.getActiveFile();
+    const path = file ? file.path : null;
+    let fallback = null;
+    for (const r of this.allRenderers) {
+      if (r._destroyed || !r.model || !r.el || !r.el.isConnected) continue;
+      if (path && r.ctx.sourcePath === path) return r;
+      if (!fallback) fallback = r;
+    }
+    return fallback;
+  }
+
   async saveSettings() { this._syncCfg(); await this.saveData(this.settings); }
 
   /* Mirror the validated settings into the module-level CFG the helpers read. */
   _syncCfg() {
     const s = this.settings;
     CFG.fdow = (typeof s.firstDayOfWeek === 'number' && s.firstDayOfWeek >= 0 && s.firstDayOfWeek <= 6) ? s.firstDayOfWeek : null;
-    CFG.defaultDur = Math.max(15, Math.min(24 * 60, Number(s.defaultDurationMin) || 60));
+    // Capped below a full day: the default duration wraps around midnight now, and exactly 24h
+    // would wrap back onto the start time — a zero-length event.
+    CFG.defaultDur = Math.max(15, Math.min(23 * 60, Number(s.defaultDurationMin) || 60));
     CFG.snap = [15, 30, 60].includes(Number(s.snapMin)) ? Number(s.snapMin) : 30;
+  }
+
+  /* Per-block UI state (current view, completed-items filter). Kept out of the note on purpose —
+   * see CalendarRenderer.view(). Saves are debounced: a keyboard user can cycle views fast. */
+  recallViewState(key) { return (this.settings.viewMemory && this.settings.viewMemory[key]) || {}; }
+
+  rememberViewState(key, patch) {
+    if (!this.settings.viewMemory) this.settings.viewMemory = {};
+    this.settings.viewMemory[key] = Object.assign({}, this.settings.viewMemory[key], patch);
+    if (this._memTimer) clearTimeout(this._memTimer);
+    this._memTimer = setTimeout(() => {
+      this._memTimer = null;
+      this.saveSettings().catch((e) => console.error('MD Calendar: saving view state failed', e));
+    }, 600);
   }
 
   /* The vault's calendar note (single-calendar mode): the remembered path when it still
@@ -3367,6 +4048,10 @@ class MdCalendarPlugin extends Plugin {
     const fenceRe = /^\s*(?:`{3,}|~{3,})\s*md-calendar\b/m;
     const files = this.app.vault.getMarkdownFiles().sort((a, b) => b.stat.mtime - a.stat.mtime);
     for (const f of files) {
+      // Skip notes the metadata cache says hold no code block at all: the fence can only be
+      // in one, and this turns a whole-vault read into a read of the few files that qualify.
+      const cache = this.app.metadataCache.getFileCache(f);
+      if (cache && cache.sections && !cache.sections.some((s) => s.type === 'code')) continue;
       let text;
       try { text = await this.app.vault.cachedRead(f); } catch (e) { continue; }
       if (fenceRe.test(text)) {

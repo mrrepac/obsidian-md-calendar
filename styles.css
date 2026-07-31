@@ -69,7 +69,8 @@
 .dn-head-right { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 /* optional calendar title from the block JSON — its own line above the controls
  * (order -2 keeps it on top even when the narrow layout reorders the period to -1) */
-.dn-title { flex: 1 1 100%; order: -2; font-weight: 700; font-size: var(--font-ui-medium); padding-left: 4px; }
+.dn-title { flex: 1 1 100%; order: -2; font-weight: 700; font-size: var(--font-ui-medium); padding-left: 4px; cursor: text; border-radius: 4px; }
+.dn-title:hover { background: var(--background-modifier-hover); }
 
 .dn-views {
   display: inline-flex;
@@ -389,7 +390,42 @@
   overflow-wrap: anywhere;
   word-break: break-word;
 }
-.dn-ev-time { display: block; color: var(--text-muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+/* the tick box in the top-right corner: out of the way until you hover (or it's already ticked,
+ * or there is no hover to speak of), so a dense week grid doesn't turn into a wall of boxes */
+.dn-ev-check.dn-check {
+  position: absolute;
+  top: 3px; right: 3px;
+  width: 15px; height: 15px;
+  border-width: 1.4px;
+  border-radius: 4px;
+  background: var(--background-primary);
+  opacity: 0;
+  transition: opacity .12s;
+  z-index: 4;
+}
+.dn-ev:hover .dn-ev-check.dn-check,
+.dn-ev-check.dn-check.is-done,
+.dn-ev-check.dn-check:focus-visible { opacity: 1; }
+.dn-ev-check.dn-check .svg-icon { width: 11px; height: 11px; }
+.is-mobile .dn-ev-check.dn-check { opacity: 1; }
+.dn-ev-time { display: block; padding-right: 17px; color: var(--text-muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+/* the two halves of an event that runs past midnight: the cut edge is dashed, so it reads as
+ * "carries on" instead of "ends exactly here" */
+.dn-ev.dn-spill-head { border-bottom: 2px dashed var(--dn-ev); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.dn-ev.dn-spill-tail { border-top: 2px dashed var(--dn-ev); border-top-left-radius: 0; border-top-right-radius: 0; }
+.dn-chip-cont { color: var(--dn-ev); font-weight: 700; }
+
+/* keyboard-selected item (Tab steps into the day) — a ring on the item itself, shown only
+ * while the grid holds focus, so mouse users never see it */
+.dn-month:focus .is-item-sel,
+.dn-ag2-grid:focus .is-item-sel,
+.dn-timegrid:focus .is-item-sel,
+.dn-ag2-day .is-item-sel {
+  box-shadow: 0 0 0 2px var(--interactive-accent);
+  border-radius: 4px;
+  position: relative;
+  z-index: 3;
+}
 /* wrap a long word instead of letting it run past the block's right edge; the block's own
  * overflow:hidden then clips vertically if there still isn't room (short events) */
 .dn-ev-title { display: block; font-weight: 500; overflow: hidden; overflow-wrap: anywhere; }
@@ -453,6 +489,15 @@
 .dn-in-time { width: 104px; }
 /* repeat end row ("Until … or times: N") */
 .dn-until-or { font-size: var(--font-ui-smaller); color: var(--text-muted); }
+/* "next day" beside an end time earlier than the start — the event runs past midnight */
+.dn-overnight-tag {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-on-accent);
+  background: var(--interactive-accent);
+  border-radius: 4px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
 .dn-in-times { width: 72px; }
 /* weekday picker (repeat = "On days…") */
 .dn-wd-pick { display: inline-flex; gap: 4px; flex-wrap: wrap; }
@@ -510,6 +555,67 @@ textarea.dn-note-in { resize: vertical; min-height: 34px; font-family: inherit; 
 .dn-quick-clock .svg-icon { width: 15px; height: 15px; }
 .dn-quick-time { flex: 1; }
 .dn-quick-hint { margin-top: 10px; color: var(--text-faint); font-size: var(--font-ui-smaller); }
+
+/* ---- quarantined records (no usable date) ---- */
+.dn-orphan-strip {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-normal);
+  background: color-mix(in srgb, var(--color-orange) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-orange) 45%, transparent);
+}
+.dn-orphan-ic { display: inline-flex; color: var(--color-orange); }
+.dn-orphan-ic .svg-icon { width: 15px; height: 15px; }
+.dn-orphan-text { flex: 1 1 auto; min-width: 0; }
+.dn-orphan-btn { flex: 0 0 auto; padding: 3px 10px; font-size: var(--font-ui-smaller); }
+.dn-orphan-hint { color: var(--text-muted); font-size: var(--font-ui-smaller); margin-bottom: 12px; }
+.dn-orphan-list { display: flex; flex-direction: column; gap: 6px; max-height: 46vh; overflow-y: auto; }
+.dn-orphan-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--background-secondary);
+  flex-wrap: wrap;
+}
+.dn-orphan-main { flex: 1 1 140px; min-width: 0; }
+.dn-orphan-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dn-orphan-raw { font-size: var(--font-ui-smaller); color: var(--color-orange); font-family: var(--font-monospace); }
+.dn-orphan-row .dn-in { flex: 0 0 auto; }
+
+/* ---- search ---- */
+.dn-search-in { width: 100%; }
+.dn-search-count { margin: 8px 0 4px; font-size: var(--font-ui-smaller); color: var(--text-faint); }
+.dn-search-list { display: flex; flex-direction: column; max-height: 48vh; overflow-y: auto; }
+.dn-search-row {
+  --dn-ev: var(--interactive-accent);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border-left: 3px solid var(--dn-ev);
+  cursor: pointer;
+}
+.dn-search-row:hover { background: var(--background-modifier-hover); }
+.dn-search-row.is-sel { background: color-mix(in srgb, var(--interactive-accent) 14%, transparent); }
+.dn-search-row.is-done .dn-search-title { text-decoration: line-through; color: var(--text-muted); }
+.dn-search-date { flex: 0 0 auto; min-width: 96px; font-size: var(--font-ui-smaller); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.dn-search-main { flex: 1 1 auto; min-width: 0; }
+.dn-search-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dn-search-sub { font-size: var(--font-ui-smaller); color: var(--text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* open the event instead of just jumping to its day (Ctrl/Cmd+Enter does the same) */
+.dn-search-edit { flex: 0 0 auto; display: inline-flex; color: var(--text-faint); opacity: 0; cursor: pointer; padding: 2px; border-radius: 4px; }
+.dn-search-row:hover .dn-search-edit, .dn-search-row.is-sel .dn-search-edit { opacity: 1; }
+.dn-search-edit:hover { color: var(--text-normal); background: var(--background-modifier-hover); }
+.dn-search-edit .svg-icon { width: 14px; height: 14px; }
 
 /* ---- drag to reschedule ---- */
 .dn-dragging { opacity: .55; box-shadow: var(--shadow-s); }
