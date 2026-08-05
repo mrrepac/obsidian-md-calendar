@@ -169,6 +169,8 @@ const STRINGS = {
     s_multiDesc: 'On — the button creates a new calendar every time. Off — one calendar, the button opens it.',
     s_status: 'Next event in the status bar',
     s_statusDesc: 'The nearest upcoming item of the calendar note, at the bottom of the window — without opening the note. Desktop only.',
+    s_full: 'Fill the pane',
+    s_fullDesc: 'A calendar is a grid, not prose: let the block use the whole width and height of the pane instead of the readable-line-width column. A note that holds a calendar goes full width with it.',
   },
   ru: {
     untitled: 'Календарь',
@@ -297,6 +299,8 @@ const STRINGS = {
     s_multiDesc: 'Вкл — кнопка каждый раз создаёт новый календарь. Выкл — календарь один, кнопка открывает его.',
     s_status: 'Ближайшее событие в строке состояния',
     s_statusDesc: 'Ближайшая запись из заметки-календаря внизу окна — не открывая заметку. Только на десктопе.',
+    s_full: 'Календарь во всё окно',
+    s_fullDesc: 'Календарь — сетка, а не текст: блок занимает всю ширину и высоту панели, а не колонку «читаемой длины строки». Заметка с календарём растягивается вместе с ним.',
   },
 };
 
@@ -377,6 +381,7 @@ const DEFAULT_PLUGIN_SETTINGS = {
   completionSound: true,  // a short chime when something is ticked done
   monthChips: 4,          // events drawn in a month cell before "+N more" takes over
   statusBar: true,        // desktop: show the next upcoming item in Obsidian's status bar
+  fullWidth: true,        // the block fills the pane instead of the readable-text column
   // Per-block UI state — { "<notePath>::<calId>": { view, showCompleted } }. It lives HERE and
   // not in the note so that paging through views stops rewriting the user's Markdown file.
   viewMemory: {},
@@ -1130,7 +1135,11 @@ class CalendarRenderer {
     if (this._dirty) this.persist().catch((e) => console.error('MD Calendar: flush on teardown failed', e));
     this.abortDrags();
     if (this._placeCleanup) this._placeCleanup();
+    if (this._paneObserver) { this._paneObserver.disconnect(); this._paneObserver = null; }
     this.plugin.allRenderers.delete(this);
+    // After the delete above, so a sibling calendar in this note is the only thing that can
+    // keep the note widened — a note that no longer renders one goes back to normal width.
+    this._clearBleed(true);
     // Only drop the registry entry if it still points at us — a reprocess may have already
     // registered the replacement renderer under the same key.
     if (this.plugin.liveRenderers.get(this.stateKey()) === this) this.plugin.liveRenderers.delete(this.stateKey());
@@ -1294,8 +1303,70 @@ class CalendarRenderer {
     return map;
   }
 
+  /* Full-bleed. Obsidian's "readable line width" is right for a paragraph and wrong for a grid:
+   * it leaves half the pane empty on both sides and the calendar ends wherever its content does.
+   * Rather than guess at the DOM, tag EVERY ancestor between the block and the pane — the width
+   * clamps live on .cm-sizer / .cm-content in Live Preview and .markdown-preview-sizer in reading
+   * view, and this lets all of them give way at once whatever the structure — then hand the block
+   * the pane's remaining height as --dn-fill. */
+  _applyFullBleed(tries) {
+    if (this._destroyed) return;
+    const on = !!this.plugin.settings.fullWidth && !this.parseError;
+    this._clearBleed();
+    this.el.toggleClass('is-full', on);
+    if (!on) { this.el.style.removeProperty('--dn-fill'); return; }
+    const pane = this.el.closest('.view-content');
+    if (!pane) {
+      // The first render runs while the block is still being assembled, before it is in the
+      // document — there is no pane to measure against yet. Come back when there is, otherwise
+      // the note would stay clamped until something else forced a redraw.
+      if ((tries || 0) < 30) window.requestAnimationFrame(() => this._applyFullBleed((tries || 0) + 1));
+      return;
+    }
+    for (let n = this.el.parentElement; n && n !== pane; n = n.parentElement) {
+      n.addClass('dn-bleed');
+      this._bleedNodes.push(n);
+    }
+    // The pane resizes on window resize, a sidebar toggle, a split — recompute rather than
+    // pinning a height that was true once.
+    if (!this._paneObserver && typeof ResizeObserver === 'function') {
+      this._paneObserver = new ResizeObserver(() => this._fillHeight(pane, 0));
+      this._paneObserver.observe(pane);
+    }
+    this._fillHeight(pane, 0);
+  }
+
+  /* Drop the tags again. Another calendar in the SAME note may still want them, so leave them
+   * alone if one is live — otherwise closing one block would un-widen the other. */
+  _clearBleed(final) {
+    const nodes = this._bleedNodes || [];
+    this._bleedNodes = [];
+    if (final && this._sharesNoteWithLiveCalendar()) return;
+    for (const n of nodes) n.removeClass('dn-bleed');
+  }
+
+  _sharesNoteWithLiveCalendar() {
+    for (const other of this.plugin.allRenderers) {
+      if (other !== this && !other._destroyed && other.model && other.el && other.el.isConnected
+        && other.ctx.sourcePath === this.ctx.sourcePath) return true;
+    }
+    return false;
+  }
+
+  /* The height left between the top of the block and the bottom of the pane. Measured, not
+   * guessed at with vh: the note header, a tab bar and the block's own offset all move it.
+   * Same first-render problem as the time grid's scroll — retry until the pane has a box. */
+  _fillHeight(pane, tries) {
+    if (this._destroyed || !this.el.isConnected) return;
+    const pr = pane.getBoundingClientRect();
+    if (!pr.height) { if (tries < 30) window.requestAnimationFrame(() => this._fillHeight(pane, tries + 1)); return; }
+    const avail = Math.round(pr.bottom - this.el.getBoundingClientRect().top - 12); // a little air at the bottom
+    this.el.style.setProperty('--dn-fill', Math.max(340, avail) + 'px');
+  }
+
   /* ---- top-level render ---- */
   render() {
+    this._applyFullBleed();
     if (this.parseError) return this.renderError();
     // Tear down any in-flight drag / placement-key listener first: el.empty() below detaches
     // their DOM but leaves the document-level listeners bound to dead nodes.
@@ -4037,6 +4108,15 @@ class MdCalendarSettingTab extends PluginSettingTab {
         await this.plugin.saveSettings();
       }));
 
+    new Setting(containerEl)
+      .setName(t('s_full'))
+      .setDesc(t('s_fullDesc'))
+      .addToggle((tg) => tg.setValue(!!this.plugin.settings.fullWidth).onChange(async (v) => {
+        this.plugin.settings.fullWidth = v;
+        await this.plugin.saveSettings();
+        this.plugin.refreshAll(); // layout, not data — the open calendars have to redraw
+      }));
+
     // Desktop only — a phone has no status bar to put it in.
     if (!IS_MOBILE()) {
       new Setting(containerEl)
@@ -4338,6 +4418,14 @@ class MdCalendarPlugin extends Plugin {
         if (!r._destroyed && r.model && r.ctx.sourcePath === path) { r.goToDate(iso); return; }
       }
     }, 250);
+  }
+
+  /* Redraw every live calendar — for settings that change the layout rather than the data. */
+  refreshAll() {
+    for (const r of this.allRenderers) {
+      if (r._destroyed || !r.model || !r.el || !r.el.isConnected) continue;
+      try { r.render(); } catch (e) { console.error('MD Calendar: re-render failed', e); }
+    }
   }
 
   async saveSettings() { this._syncCfg(); await this.saveData(this.settings); }

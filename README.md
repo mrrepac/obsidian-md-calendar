@@ -155,7 +155,17 @@ and on mobile the delete notice carries a one-tap **Undo** button.
 duration of a new timed event (default one hour), the drag/resize snap step
 (15 / 30 / 60 minutes), how many events a month cell shows before “+N more”, the
 completion chime (a soft synthesized two-note sound on ticking something done — no
-audio files involved), and the status-bar item below. Times are shown in 24-hour format.
+audio files involved), and the two items below. Times are shown in 24-hour format.
+
+## Filling the pane
+
+Obsidian's *readable line width* is right for a paragraph and wrong for a grid: it leaves
+the calendar in a narrow column with much of the pane empty on either side, ending
+wherever its content happens to stop. **Fill the pane** (on by default) lifts that clamp
+for a note holding a calendar and gives the block the height left below it, so the month
+rows, the hour grid and the agenda's day panel grow with the window instead of with the
+text column. The height is measured, not assumed, and follows a window resize, a sidebar
+toggle or a split. Turn the setting off for the ordinary note layout.
 
 ## What's coming up
 

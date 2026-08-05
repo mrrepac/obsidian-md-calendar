@@ -694,8 +694,32 @@ body.dn-drag-active.dn-copy { cursor: copy; } /* Ctrl/Cmd held → drop leaves a
 .dn-placing .dn-day, .dn-placing .dn-tg-slot, .dn-placing .dn-tg-allday-cell, .dn-placing .dn-ag2-cell { cursor: copy; }
 .dn-placing .dn-day:hover, .dn-placing .dn-tg-allday-cell:hover, .dn-placing .dn-ag2-cell:hover { outline: 2px solid var(--interactive-accent); outline-offset: -2px; border-radius: 4px; }
 
+/* ---- full-bleed: the calendar owns the pane, not a text column ---- *
+ * Obsidian clamps the note to --file-line-width, which is right for a paragraph and wrong for a
+ * grid. These two selectors carry the SAME specificity as its own rules (0,4,0 for the Live
+ * Preview sizer/content, 0,3,0 for the reading-view sizer) and load later in the cascade, so the
+ * clamp lifts without !important. `.dn-bleed` is put on every ancestor between the block and the
+ * pane by _applyFullBleed(); --dn-fill is the measured height left below the block. */
+.markdown-source-view.mod-cm6.is-readable-line-width .dn-bleed,
+.markdown-preview-view.is-readable-line-width .dn-bleed { max-width: none; }
+
+.md-calendar.is-full { display: flex; flex-direction: column; min-height: var(--dn-fill, 0px); }
+.md-calendar.is-full .dn-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+/* month: the six week rows already share the space (flex: 1 1 0 each) — just give them some */
+.md-calendar.is-full .dn-month { flex: 1 1 auto; }
+/* week/day: the hour body takes the slack instead of stopping at 60vh */
+.md-calendar.is-full .dn-timegrid { flex: 1 1 auto; min-height: 0; }
+.md-calendar.is-full .dn-tg-scroll { flex: 1 1 auto; max-height: none; }
+/* agenda: the mini calendar keeps its width, the day panel gets the height and scrolls itself */
+.md-calendar.is-full .dn-ag2 { flex: 1 1 auto; min-height: 0; align-items: stretch; }
+.md-calendar.is-full .dn-ag2-day { overflow-y: auto; }
+
 /* ---- narrow / mobile ---- */
 @container (max-width: 560px) {
+  /* Stacked agenda: let it be content-height again, or the mini calendar would take the
+     vertical slack meant for the day list below it. */
+  .md-calendar.is-full .dn-ag2 { flex: 0 0 auto; }
+  .md-calendar.is-full .dn-ag2-day { overflow-y: visible; }
   .dn-mweek { grid-auto-rows: minmax(56px, 1fr); }
   .dn-day { min-height: 56px; }
   /* only the MONTH cells drop chip titles when narrow (dots suffice there) — the day/week
