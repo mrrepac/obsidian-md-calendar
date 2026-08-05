@@ -542,6 +542,33 @@
 }
 .dn-color-swatch:hover { transform: scale(1.15); }
 .dn-color-swatch.is-on { box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--dn-ev); }
+/* a quiet explanation after a control ("2 means every other one") */
+.dn-row-hint { font-size: var(--font-ui-smaller); color: var(--text-muted); flex: 1 1 auto; min-width: 0; }
+/* skipped occurrences of a series: one chip per date, click to bring that day back */
+.dn-skip-list { display: flex; flex-wrap: wrap; gap: 5px; flex: 1 1 auto; min-width: 0; }
+.dn-skip-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 5px 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-modifier-form-field);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  cursor: pointer;
+  user-select: none;
+  text-decoration: line-through; /* it is a date the series does NOT happen on */
+}
+.dn-skip-chip:hover { color: var(--text-normal); border-color: var(--interactive-accent); text-decoration: none; }
+.dn-skip-x { display: inline-flex; color: var(--text-faint); }
+.dn-skip-x .svg-icon { width: 13px; height: 13px; }
+.dn-skip-chip:hover .dn-skip-x { color: var(--interactive-accent); }
+.dn-skip-all { padding: 2px 9px; font-size: var(--font-ui-smaller); box-shadow: none; }
+/* delete-the-past dialog: the count is the point, so it carries weight */
+.dn-purge-count { margin: 12px 0 4px; font-size: var(--font-ui-small); color: var(--text-normal); }
+.dn-purge-keeps { display: block; }
+.dn-disabled { opacity: .5; pointer-events: none; }
 /* note textarea (event editor) */
 .dn-row-top { align-items: flex-start; }
 .dn-row-top .dn-row-label { padding-top: 7px; }
@@ -678,7 +705,9 @@ body.dn-drag-active.dn-copy { cursor: copy; } /* Ctrl/Cmd held → drop leaves a
 .dn-place-ic .svg-icon { width: 15px; height: 15px; }
 .dn-place-text { flex: 1 1 auto; min-width: 0; }
 .dn-place-x { display: inline-flex; cursor: pointer; opacity: .85; border-radius: 4px; }
-.dn-place-x:hover { opacity: 1; background: rgba(255, 255, 255, .18); }
+/* Tint from the accent's own foreground, not a literal white: on a light accent (a yellow
+ * or pastel theme) a white overlay is invisible, and the file's rule is theme variables only. */
+.dn-place-x:hover { opacity: 1; background: color-mix(in srgb, var(--text-on-accent) 20%, transparent); }
 .dn-place-x .svg-icon { width: 15px; height: 15px; }
 .dn-place-time {
   width: 120px;

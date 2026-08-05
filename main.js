@@ -64,7 +64,7 @@ const STRINGS = {
     allDay: 'All-day',
     more: '+{0} more',
     noEvents: 'No events this day.',
-    gridNav: 'Calendar grid. Arrows or WASD move the day selection (W/S walk the hours in week/day). Tab steps into that day’s items: Enter edits, Space completes, Delete removes, M opens the menu, Escape steps back out. Q/E switch views, PageUp/PageDown months, Enter or Space on a day adds an event, T jumps to today, G goes to a date, F searches, C copies the period as text',
+    gridNav: 'Calendar grid. Arrows or WASD move the day selection (W/S walk the hours in week/day). Tab steps into that day’s items: Enter edits, Space completes, Delete removes, M opens the menu, digits 1 to 7 set the color, Shift with an arrow moves the item itself, Escape steps back out. Q/E switch views, PageUp/PageDown months, Enter or Space on a day adds an event, T jumps to today, G goes to a date, F searches, C copies the period as text',
     newEvent: 'New event',
     editEvent: 'Edit event',
     e_title: 'Title',
@@ -108,6 +108,30 @@ const STRINGS = {
     u_week: 'weeks',
     u_month: 'months',
     u_year: 'years',
+    e_interval: 'Interval',
+    e_intervalHint: 'Repeat every N — 2 means every other one.',
+    e_skipped: 'Skipped',
+    e_skipRestore: 'Bring this occurrence back',
+    e_skipAll: 'Restore all',
+    m_snooze: 'Postpone',
+    m_tomorrow: 'To tomorrow',
+    m_nextWeek: 'By a week',
+    m_pickDate: 'To a date…',
+    snoozed: 'Moved to {0}.',
+    purge: 'Delete the past',
+    purgeCmd: 'Delete past records',
+    purgeHint: 'The calendar lives in one note, so old records keep it growing. This deletes what is over and done with — and trims the dates that finished series and skipped occurrences leave behind.',
+    purgeKeeps: 'Unfinished tasks and repeats that are still running are always kept.',
+    purgeOlder: 'Older than',
+    p_today: 'today',
+    p_month: 'a month ago',
+    p_3months: 'three months ago',
+    p_year: 'a year ago',
+    p_custom: 'a date of my own',
+    purgeCount: 'Will delete {0}.',
+    purgeBallast: ' Plus {0} inside series that stay.',
+    purgeNothing: 'Nothing to delete before that date.',
+    purgeDone: 'Deleted {0} — Ctrl+Z brings them back.',
     m_edit: 'Edit',
     m_duplicate: 'Duplicate',
     m_color: 'Color',
@@ -194,7 +218,7 @@ const STRINGS = {
     allDay: 'Весь день',
     more: 'ещё {0}',
     noEvents: 'В этот день событий нет.',
-    gridNav: 'Сетка календаря. Стрелки или WASD двигают указатель по дням (W/S — часы в неделе/дне). Tab заходит внутрь дня, к его событиям: Enter — изменить, пробел — выполнено, Delete — удалить, M — меню, Escape — обратно к дню. Q/E — переключение вида, PageUp/PageDown — месяцы, Enter/пробел на дне — новое событие, T — сегодня, G — переход к дате, F — поиск, C — скопировать период текстом',
+    gridNav: 'Сетка календаря. Стрелки или WASD двигают указатель по дням (W/S — часы в неделе/дне). Tab заходит внутрь дня, к его событиям: Enter — изменить, пробел — выполнено, Delete — удалить, M — меню, цифры от 1 до 7 — цвет, Shift со стрелкой двигает саму запись, Escape — обратно к дню. Q/E — переключение вида, PageUp/PageDown — месяцы, Enter/пробел на дне — новое событие, T — сегодня, G — переход к дате, F — поиск, C — скопировать период текстом',
     newEvent: 'Новое событие',
     editEvent: 'Изменить событие',
     e_title: 'Название',
@@ -238,6 +262,30 @@ const STRINGS = {
     u_week: 'нед.',
     u_month: 'мес.',
     u_year: 'г.',
+    e_interval: 'Интервал',
+    e_intervalHint: 'Повторять каждые N — 2 значит через раз.',
+    e_skipped: 'Пропущено',
+    e_skipRestore: 'Вернуть это вхождение',
+    e_skipAll: 'Вернуть все',
+    m_snooze: 'Отложить',
+    m_tomorrow: 'На завтра',
+    m_nextWeek: 'На неделю',
+    m_pickDate: 'На дату…',
+    snoozed: 'Перенесено на {0}.',
+    purge: 'Удалить прошедшее',
+    purgeCmd: 'Удалить прошедшие записи',
+    purgeHint: 'Календарь живёт в одной заметке, и старые записи её раздувают. Здесь удаляется то, что уже прошло и закрыто, — вместе с датами, которые остаются от завершённых серий и удалённых вхождений.',
+    purgeKeeps: 'Незавершённые задачи и повторы, которые ещё идут, остаются всегда.',
+    purgeOlder: 'Раньше чем',
+    p_today: 'сегодня',
+    p_month: 'месяц назад',
+    p_3months: 'три месяца назад',
+    p_year: 'год назад',
+    p_custom: 'своя дата',
+    purgeCount: 'Будет удалено: {0}.',
+    purgeBallast: ' И ещё {0} внутри серий, которые остаются.',
+    purgeNothing: 'До этой даты удалять нечего.',
+    purgeDone: 'Удалено: {0} — Ctrl+Z вернёт.',
     m_edit: 'Изменить',
     m_duplicate: 'Дублировать',
     m_color: 'Цвет',
@@ -317,8 +365,11 @@ function t(key) {
 /* Count words for the day summaries. Russian needs three forms (1 событие / 2 события /
  * 5 событий), English two — so this can't go through t()'s {0} substitution. */
 const PLURALS = {
-  en: { ev: ['event', 'events'], task: ['task', 'tasks'] },
-  ru: { ev: ['событие', 'события', 'событий'], task: ['задача', 'задачи', 'задач'] },
+  en: { ev: ['event', 'events'], task: ['task', 'tasks'], rec: ['record', 'records'], date: ['date', 'dates'] },
+  ru: {
+    ev: ['событие', 'события', 'событий'], task: ['задача', 'задачи', 'задач'],
+    rec: ['запись', 'записи', 'записей'], date: ['дата', 'даты', 'дат'],
+  },
 };
 function plural(n, kind) {
   const forms = (PLURALS[LANG] || PLURALS.en)[kind];
@@ -984,6 +1035,39 @@ function layoutTimedEvents(items, dayStartMin, dayEndMin, defaultDur) {
   return evs.map((x) => x.it);
 }
 
+/* What "delete the past" would do at a given cut-off, worked out WITHOUT doing it — the dialog
+ * shows the numbers before anything is touched.
+ *
+ * A record counts as past only when it can no longer show up again:
+ *  - an UNFINISHED task is never past. It carries forward to today (see expandInstances), so
+ *    deleting it would silently drop a live to-do;
+ *  - a repeat with no end, or an end still ahead, is still running — it stays whatever its
+ *    start date says. Only a series that has finished (its `until` is behind the cut-off, or it
+ *    was completed as a whole) goes;
+ *  - a multi-day event is judged by the day it ENDS on, not the day it starts.
+ * Series that stay still shed their ballast: the skip / doneDates entries behind the cut-off can
+ * never matter again, and in one long-running series they are most of what the note is carrying.
+ * Quarantined records are left alone — they have no usable date to judge, and the orphan dialog
+ * is where they get sorted out. */
+function purgePlan(events, beforeIso) {
+  const drop = [];
+  let ballast = 0;
+  for (const ev of events || []) {
+    if (!ev.date) continue;
+    if (ev.repeat) {
+      const until = ev.repeat.until || null;
+      const finished = ev.done === true || (until && until < beforeIso);
+      if (finished && ev.date < beforeIso) { drop.push(ev.id); continue; }
+      for (const d of ev.skip || []) if (d < beforeIso) ballast++;
+      for (const d of ev.doneDates || []) if (d < beforeIso) ballast++;
+      continue;
+    }
+    if (ev.task && !ev.done) continue; // carried forward to today — never past
+    if ((ev.endDate || ev.date) < beforeIso) drop.push(ev.id);
+  }
+  return { drop, ballast };
+}
+
 /* Per-block undo/redo of the calendar model (serialized snapshots). Keyed like VIEW_STATES —
  * a save triggers a block reprocess that replaces the renderer, so per-renderer stacks would
  * be wiped by the very change they were meant to revert. */
@@ -1256,6 +1340,29 @@ class CalendarRenderer {
     this.offerUndo(t('clearedDone', n));
   }
 
+  openPurge() {
+    if (this.view().pending) return; // placement mode owns the flow
+    new PurgeModal(this.app, this).open();
+  }
+
+  /* Carry out the plan above. One mutate, so Ctrl+Z brings the whole sweep back. */
+  purgePast(beforeIso) {
+    const plan = purgePlan(this.model.events, beforeIso);
+    if (!plan.drop.length && !plan.ballast) { new Notice(t('purgeNothing')); return; }
+    const dropSet = new Set(plan.drop);
+    this.mutate((m) => {
+      m.events = m.events.filter((ev) => !dropSet.has(ev.id));
+      for (const ev of m.events) {
+        if (!ev.repeat) continue;
+        if (ev.skip) { ev.skip = ev.skip.filter((d) => d >= beforeIso); if (!ev.skip.length) ev.skip = null; }
+        if (ev.doneDates) { ev.doneDates = ev.doneDates.filter((d) => d >= beforeIso); if (!ev.doneDates.length) ev.doneDates = null; }
+      }
+      m.events.forEach((x, i) => { x.order = i; });
+    });
+    returnFocusToGrid(this);
+    this.offerUndo(t('purgeDone', plan.drop.length + ' ' + plural(plan.drop.length, 'rec')));
+  }
+
   /* ---- data ---- */
   itemsInRange(fromIso, toIso) {
     // Reach one day further back than asked: an event running past midnight has a tail that
@@ -1485,6 +1592,7 @@ class CalendarRenderer {
     this.iconBtn(right, showDone ? 'eye' : 'eye-off', showDone ? t('hideCompleted') : t('showCompleted'),
       () => this.setShowCompleted(!showDone), showDone);
     this.iconBtn(right, 'trash-2', t('clearDone'), () => this.clearDone());
+    this.iconBtn(right, 'archive', t('purge'), () => this.openPurge());
 
     this.buildAddBar(head);
 
@@ -1729,7 +1837,17 @@ class CalendarRenderer {
       const item = this.selectedItem();
       let handled = true;
       if (k === 'Tab') handled = this.selectItem(e.shiftKey ? -1 : 1);
-      else if (k === 'ArrowLeft' || code === 'KeyA') this.moveSelection(-1);
+      // With an item picked, Shift+arrow moves the ITEM rather than the day cursor — the
+      // keyboard's answer to dragging. Checked before the plain arrows below, which would
+      // otherwise walk the selection away from the item being moved.
+      else if (item && e.shiftKey && (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'ArrowUp' || k === 'ArrowDown')) {
+        this.nudgeItem(item, k === 'ArrowLeft' ? -1 : k === 'ArrowRight' ? 1 : 0, k === 'ArrowUp' ? -1 : k === 'ArrowDown' ? 1 : 0);
+      } else if (item && /^[1-7]$/.test(k)) {
+        // Digits recolor the picked item, in the swatch order of the editor (1 = the accent).
+        const key = COLOR_KEYS[Number(k) - 1];
+        this.setEventColor(item, key === 'default' ? null : key);
+        this._reselect(item.baseId);
+      } else if (k === 'ArrowLeft' || code === 'KeyA') this.moveSelection(-1);
       else if (k === 'ArrowRight' || code === 'KeyD') this.moveSelection(1);
       else if (k === 'ArrowUp' || code === 'KeyW') { if (timeGrid) this.moveSelSlot(-1); else this.moveSelection(-7); }
       else if (k === 'ArrowDown' || code === 'KeyS') { if (timeGrid) this.moveSelSlot(1); else this.moveSelection(7); }
@@ -1802,6 +1920,53 @@ class CalendarRenderer {
     v.selItem = (next < 0 || next >= list.length) ? null : next;
     this.render();
     return true;
+  }
+
+  /* Shift+arrow on a picked item: ←/→ by a day, ↑/↓ by a week — or, for a timed item in the
+   * week/day grid, by one grid step of TIME, which is what up and down mean there. Goes through
+   * the same paths a drag does, so a recurring occurrence detaches exactly as dragging it would. */
+  nudgeItem(it, dx, dy) {
+    const v = this.view();
+    const timeGrid = v.view === 'week' || v.view === 'day';
+    if (dy && timeGrid && !it.allDay) { this.nudgeTime(it, dy * CFG.snap); return; }
+    const days = dx + dy * 7;
+    if (!days) return;
+    const iso = moment(it.date, 'YYYY-MM-DD').add(days, 'day').format('YYYY-MM-DD');
+    // Move the day cursor FIRST: dropDate re-renders, and the selection has to land where the
+    // item went, not stay on the day it left.
+    v.anchor = iso;
+    v.selDom = moment(iso, 'YYYY-MM-DD').date();
+    this.dropDate(it, it.date, iso, false);
+    this._reselect(it.baseId);
+  }
+
+  /* Slide a timed item along its own day, keeping its duration (and wrapping past midnight
+   * rather than clamping — the night train stays three hours long). */
+  nudgeTime(it, deltaMin) {
+    const s = timeToMin(it.start);
+    if (s == null) return;
+    const dur = it.end ? (durationMin(it.start, it.end) || CFG.defaultDur) : CFG.defaultDur;
+    const start = (s + deltaMin + DAY_MIN) % DAY_MIN;
+    const startStr = minToTime(start);
+    const endStr = it.end ? minToTime((start + dur) % DAY_MIN) : null;
+    if (it.repeat) { this.detachOccurrence(it, { date: it.date, start: startStr, end: endStr }); return; }
+    this.mutate((m) => {
+      const ev = find(m, it.baseId);
+      if (!ev) return;
+      ev.start = startStr;
+      if (endStr) ev.end = endStr;
+    });
+    this._reselect(it.baseId);
+  }
+
+  /* Put the item selection back on an event after a re-render reshuffled the day — so a
+   * Shift+arrow (or a recolor) can be repeated without re-picking the item every time. */
+  _reselect(baseId) {
+    const v = this.view();
+    const idx = (this._daySel || []).findIndex((r) => r.it && r.it.baseId === baseId);
+    v.selItem = idx >= 0 ? idx : null;
+    const row = idx >= 0 ? this._daySel[idx] : null;
+    if (row && row.el) row.el.addClass('is-item-sel');
   }
 
   /* The context menu for the keyboard-selected item, anchored to its own box. */
@@ -2687,6 +2852,22 @@ class CalendarRenderer {
         i.onClick(() => { const ev = find(this.model, it.baseId); if (ev) this.openEditor(ev); });
       }
     });
+    // Postpone — submenu where supported (Obsidian ≥ 1.4), same as the color picker; without it
+    // the date dialog is the single entry, which still beats dragging across a month boundary.
+    menu.addItem((i) => {
+      i.setTitle(t('m_snooze')).setIcon('clock');
+      const pick = () => new DatePickModal(this.app, this, t('m_snooze'), it.date, (iso) => this.snooze(it, iso)).open();
+      if (typeof i.setSubmenu === 'function') {
+        const sub = i.setSubmenu();
+        for (const [label, iso, icon] of this.snoozeTargets(it)) {
+          sub.addItem((si) => si.setTitle(label).setIcon(icon).onClick(() => this.snooze(it, iso)));
+        }
+        sub.addSeparator();
+        sub.addItem((si) => si.setTitle(t('m_pickDate')).setIcon('calendar-days').onClick(pick));
+      } else {
+        i.onClick(pick);
+      }
+    });
     menu.addSeparator();
     // A recurring occurrence can be deleted alone (an EXDATE-style skip) — the vacation case:
     // drop two weeks of gym sessions without touching the series before and after.
@@ -2711,6 +2892,27 @@ class CalendarRenderer {
 
   setEventColor(it, color) {
     this.mutate((m) => { const ev = find(m, it.baseId); if (ev) ev.color = color; });
+  }
+
+  /* Postpone: push an item to a later day without a drag or a trip through the editor — the
+   * everyday move for a task that didn't happen. Measured from the day you SEE it (it.date), so
+   * "tomorrow" on an overdue task carried forward to today means tomorrow, not the day after its
+   * original date. dropDate already owns the rules — multi-day spans shift whole, a recurring
+   * occurrence detaches instead of dragging the series with it. */
+  snooze(it, iso) {
+    if (!iso || iso === it.date) return;
+    this.dropDate(it, it.date, iso, false);
+    new Notice(t('snoozed', relDayLabel(iso)));
+    returnFocusToGrid(this);
+  }
+
+  /* The days "postpone" offers, relative to the occurrence on screen. */
+  snoozeTargets(it) {
+    const from = moment(it.date, 'YYYY-MM-DD');
+    return [
+      [t('m_tomorrow'), moment(from).add(1, 'day').format('YYYY-MM-DD'), 'chevron-right'],
+      [t('m_nextWeek'), moment(from).add(7, 'day').format('YYYY-MM-DD'), 'chevrons-right'],
+    ];
   }
 
   /* Move ONE occurrence of a repeating event (dragging it in the grid, desktop only): skip the
@@ -3360,17 +3562,24 @@ class EventModal extends Modal {
     dateInput.addEventListener('change', () => { state.date = dateInput.value; });
     const repSel = r2.createEl('select', { cls: 'dn-in dn-grow' });
     const curRep = state.repeat ? state.repeat.unit : 'none';
-    // An "every N …" rule (N>1, only creatable via quick-add) has no dedicated option below, and
-    // the plain unit option would silently reset N to 1 on Save. Pin the rule as its own labelled
-    // entry so an untouched select round-trips it intact.
-    this._customRepeat = (state.repeat && (Number(state.repeat.every) || 1) > 1) ? state.repeat : null;
-    if (this._customRepeat) {
-      repSel.createEl('option', { value: 'custom', text: repeatLabel(this._customRepeat) }).selected = true;
-    }
     [['none', t('r_none')], ['day', t('r_daily')], ['week', t('r_weekly')], ['month', t('r_monthly')], ['year', t('r_yearly')], ['weekday', t('r_weekday')], ['weekdays', t('r_weekdays')]].forEach(([val, label]) => {
       const o = repSel.createEl('option', { value: val, text: label });
-      if (!this._customRepeat && curRep === val) o.selected = true;
+      if (curRep === val) o.selected = true;
     });
+
+    // Interval — the N of "every N weeks". The engine has always understood it (advanceDue,
+    // fastForward, repeatLabel); until now the dialog couldn't express it, so such a rule could
+    // only be written by hand into the JSON and had to be pinned as an opaque option to survive
+    // a save. A plain number field says the same thing and round-trips by itself.
+    const intervalRow = contentEl.createDiv({ cls: 'dn-row' });
+    intervalRow.createSpan({ cls: 'dn-row-label', text: t('e_interval') });
+    const everyInput = intervalRow.createEl('input', {
+      cls: 'dn-in dn-in-times',
+      attr: { type: 'number', min: '1', max: '999', value: String((state.repeat && Number(state.repeat.every)) || 1) },
+    });
+    const everyUnit = intervalRow.createSpan({ cls: 'dn-until-or' });
+    intervalRow.createSpan({ cls: 'dn-row-hint', text: t('e_intervalHint') });
+    this._everyInput = everyInput; // read on commit (see readRepeat)
 
     // "On selected weekdays" — a row of day chips, shown only when repeat = weekdays
     const wdRow = contentEl.createDiv({ cls: 'dn-row' });
@@ -3411,6 +3620,35 @@ class EventModal extends Modal {
       }
     });
     untilInput.addEventListener('change', () => { timesInput.value = ''; }); // a manual date wins
+
+    // Skipped occurrences (the EXDATE list "Delete this occurrence" writes to). A long-running
+    // series collects them — and the only way back used to be hand-editing the JSON, which is
+    // what the README had to tell people to do. Each skipped date is a chip; clicking it brings
+    // that occurrence back. Held in a Set and applied on save, so Cancel really cancels.
+    const skipRow = contentEl.createDiv({ cls: 'dn-row dn-row-top' });
+    skipRow.createSpan({ cls: 'dn-row-label', text: t('e_skipped') });
+    const skipWrap = skipRow.createDiv({ cls: 'dn-skip-list' });
+    this._skipDates = new Set((this.ev && this.ev.skip) || []);
+    const renderSkips = () => {
+      skipWrap.empty();
+      const ds = Array.from(this._skipDates).sort();
+      for (const iso of ds) {
+        const chip = skipWrap.createSpan({
+          cls: 'dn-skip-chip',
+          attr: { role: 'button', tabindex: '0', 'aria-label': t('e_skipRestore') },
+        });
+        chip.createSpan({ text: cap(moment(iso, 'YYYY-MM-DD').format('D MMM YYYY')) });
+        setIcon(chip.createSpan({ cls: 'dn-skip-x' }), 'x');
+        const restore = () => { this._skipDates.delete(iso); renderSkips(); syncRep(); };
+        chip.addEventListener('click', restore);
+        chip.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); restore(); } });
+      }
+      if (ds.length > 1) {
+        const all = skipWrap.createEl('button', { cls: 'dn-skip-all', text: t('e_skipAll') });
+        all.addEventListener('click', () => { this._skipDates.clear(); renderSkips(); syncRep(); });
+      }
+    };
+    renderSkips();
 
     // Row 3 — times (timed events)
     const timeRow = contentEl.createDiv({ cls: 'dn-row' });
@@ -3487,6 +3725,11 @@ class EventModal extends Modal {
     const syncRep = () => {
       wdRow.toggleClass('dn-hide', repSel.value !== 'weekdays');
       untilRow.toggleClass('dn-hide', repSel.value === 'none');
+      // Only day/week/month/year take an interval — "every 2 weekdays" isn't a thing.
+      const hasInterval = UNITS.includes(repSel.value);
+      intervalRow.toggleClass('dn-hide', !hasInterval);
+      if (hasInterval) everyUnit.setText(t('u_' + repSel.value));
+      skipRow.toggleClass('dn-hide', repSel.value === 'none' || !this._skipDates.size);
     };
     repSel.addEventListener('change', syncRep);
     syncKind();
@@ -3529,6 +3772,9 @@ class EventModal extends Modal {
         if (untilInput.value) rep0.until = untilInput.value; else delete rep0.until;
       }
       fields.repeat = rep0;
+      // The dialog's skip list wins: cleanEvent() below carries the stored one forward, so a
+      // restored occurrence would otherwise come straight back on save.
+      fields.skip = rep0 ? Array.from(this._skipDates).sort() : null;
       if (this.ev) {
         fields.done = state.done;
         fields.completedAt = state.done ? (this.ev.completedAt || isoToday()) : null;
@@ -3555,7 +3801,7 @@ class EventModal extends Modal {
             fields.repeat = rep;
             fields.done = false;
             fields.completedAt = null;
-            fields.skip = (this.ev.skip || []).filter((d) => d > fields.date); // prune past skips
+            fields.skip = (fields.skip || []).filter((d) => d > fields.date); // prune past skips
             new Notice(t('recurred', relDayLabel(fields.date)));
           }
         }
@@ -3588,14 +3834,15 @@ class EventModal extends Modal {
 
   readRepeat(repSel, committedDate) {
     const val = repSel.value;
-    if (val === 'custom') return this._customRepeat; // the pinned "every N …" rule, unchanged
     if (val === 'none') return null;
     if (val === 'weekday') return { unit: 'weekday' };
     if (val === 'weekdays') {
       const days = Array.from(this._selDays || []).sort((a, b) => a - b);
       return days.length ? { unit: 'weekdays', days } : null; // no day chosen ⇒ no repeat
     }
-    const rep = { every: 1, unit: val };
+    // The interval field; normalizeRepeat floors it at 1, so a blank or junk entry is "every one".
+    const every = Math.max(1, Math.min(999, Math.floor(Number(this._everyInput && this._everyInput.value)) || 1));
+    const rep = { every, unit: val };
     // Preserve the day-of-month anchor for month/year rules so an end-of-month event doesn't drift
     // to the 28th. Carry an explicit stored anchor; otherwise derive it from the date being
     // committed (NOT the pre-edit date), so changing the date in the same edit takes effect.
@@ -3974,6 +4221,112 @@ class ConfirmModal extends Modal {
   onClose() { this.contentEl.empty(); }
 }
 
+/* ------------------------------------------------------------------ *
+ * Delete the past — keep the one note from growing forever            *
+ * ------------------------------------------------------------------ */
+class PurgeModal extends Modal {
+  constructor(app, renderer) { super(app); this.renderer = renderer; }
+
+  live() {
+    const r = this.renderer;
+    return (r.plugin.liveRenderers && r.plugin.liveRenderers.get(r.stateKey())) || r;
+  }
+
+  /* The cut-off currently chosen: everything strictly BEFORE this date is up for deletion. */
+  cutoff() {
+    if (this.choice === 'custom') return toIsoDate(this.dateInput.value) || isoToday();
+    const back = { today: 0, month: 1, months3: 3, year: 12 }[this.choice] || 0;
+    return moment().subtract(back, 'month').format('YYYY-MM-DD');
+  }
+
+  onOpen() {
+    const { contentEl, titleEl } = this;
+    contentEl.addClass('dn-modal');
+    if (this.modalEl) this.modalEl.addClass('dn-event-modal');
+    titleEl.setText(t('purge'));
+    contentEl.createDiv({ cls: 'dn-quick-hint', text: t('purgeHint') });
+    this.choice = 'month';
+
+    const row = contentEl.createDiv({ cls: 'dn-row' });
+    row.createSpan({ cls: 'dn-row-label', text: t('purgeOlder') });
+    const sel = row.createEl('select', { cls: 'dn-in dn-grow' });
+    [['today', t('p_today')], ['month', t('p_month')], ['months3', t('p_3months')], ['year', t('p_year')], ['custom', t('p_custom')]]
+      .forEach(([val, label]) => {
+        const o = sel.createEl('option', { value: val, text: label });
+        if (val === this.choice) o.selected = true;
+      });
+
+    const dateRow = contentEl.createDiv({ cls: 'dn-row dn-hide' });
+    dateRow.createSpan({ cls: 'dn-row-label', text: t('goToDate') });
+    this.dateInput = dateRow.createEl('input', { cls: 'dn-in dn-grow', attr: { type: 'date', value: isoToday() } });
+
+    // The count is the whole point of the dialog: no one can guess what "older than a year"
+    // covers in their own note, and a delete this broad should be seen before it happens.
+    const countEl = contentEl.createDiv({ cls: 'dn-purge-count' });
+    contentEl.createDiv({ cls: 'dn-row-hint dn-purge-keeps', text: t('purgeKeeps') });
+
+    const sync = () => {
+      this.choice = sel.value;
+      dateRow.toggleClass('dn-hide', this.choice !== 'custom');
+      const model = this.live().model;
+      const plan = purgePlan((model && model.events) || [], this.cutoff());
+      if (!plan.drop.length && !plan.ballast) {
+        countEl.setText(t('purgeNothing'));
+      } else {
+        let text = t('purgeCount', plan.drop.length + ' ' + plural(plan.drop.length, 'rec'));
+        if (plan.ballast) text += t('purgeBallast', plan.ballast + ' ' + plural(plan.ballast, 'date'));
+        countEl.setText(text);
+      }
+      go.toggleClass('dn-disabled', !plan.drop.length && !plan.ballast);
+    };
+
+    const foot = contentEl.createDiv({ cls: 'dn-modal-foot' });
+    foot.createDiv({ cls: 'dn-foot-spacer' });
+    foot.createEl('button', { text: t('cancel') }).addEventListener('click', () => this.close());
+    const go = foot.createEl('button', { cls: 'mod-warning', text: t('m_delete') });
+    go.addEventListener('click', () => {
+      const iso = this.cutoff();
+      this.close();
+      this.live().purgePast(iso);
+    });
+    sel.addEventListener('change', sync);
+    this.dateInput.addEventListener('change', sync);
+    sync();
+  }
+
+  onClose() { this.contentEl.empty(); returnFocusToGrid(this.live()); }
+}
+
+/* One date field and a Save — for "postpone to a date…". GoToDateModal is its sibling but moves
+ * the VIEW (and carries its own Today button); this one hands a date to whoever asked. */
+class DatePickModal extends Modal {
+  constructor(app, renderer, title, initialIso, onPick) {
+    super(app);
+    this.renderer = renderer;
+    this.pickTitle = title;
+    this.initialIso = initialIso;
+    this.onPick = onPick;
+  }
+
+  onOpen() {
+    const { contentEl, titleEl } = this;
+    contentEl.addClass('dn-modal');
+    if (this.modalEl) this.modalEl.addClass('dn-event-modal');
+    titleEl.setText(this.pickTitle);
+    const row = contentEl.createDiv({ cls: 'dn-row' });
+    const input = row.createEl('input', { cls: 'dn-in dn-grow', attr: { type: 'date', value: this.initialIso || isoToday() } });
+    setTimeout(() => { input.focus(); }, 0);
+    const commit = () => { const iso = toIsoDate(input.value); this.close(); if (iso) this.onPick(iso); };
+    const foot = contentEl.createDiv({ cls: 'dn-modal-foot' });
+    foot.createDiv({ cls: 'dn-foot-spacer' });
+    foot.createEl('button', { text: t('cancel') }).addEventListener('click', () => this.close());
+    foot.createEl('button', { cls: 'mod-cta', text: t('save') }).addEventListener('click', commit);
+    contentEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); commit(); } });
+  }
+
+  onClose() { this.contentEl.empty(); returnFocusToGrid(this.renderer); }
+}
+
 /* A tiny date jumper: a native date field + Go / Today. Enter commits; closing hands focus
  * back to the grid so the arrows keep working. */
 class GoToDateModal extends Modal {
@@ -4252,6 +4605,16 @@ class MdCalendarPlugin extends Plugin {
         const r = this.activeRenderer();
         if (!r) return false;
         if (!checking) r.copyPeriod();
+        return true;
+      },
+    });
+    this.addCommand({
+      id: 'purge-past',
+      name: t('purgeCmd'),
+      checkCallback: (checking) => {
+        const r = this.activeRenderer();
+        if (!r) return false;
+        if (!checking) r.openPurge();
         return true;
       },
     });

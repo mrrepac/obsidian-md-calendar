@@ -40,7 +40,8 @@ change you make in the UI is written straight back into the block.
   stay hidden. **C** on the grid, or the *Copy the visible period as text* command.
 - **Calendar name** (pencil) — the optional heading above the controls. Empty hides it.
 - **Completed toggle** — show or hide done events. The **trash button** next to it
-  deletes every completed item.
+  deletes every completed item, and the **archive button** clears out the past — see
+  *Keeping the note small* below.
 - **Records without a date** — a record whose date is missing or unreadable is never
   dropped: an orange strip appears, and **Sort out** lets you give each one a date or
   delete it. Until then it round-trips into the note untouched.
@@ -64,8 +65,9 @@ change you make in the UI is written straight back into the block.
   An unfinished task never sinks into the past — it **carries forward to today**,
   drawn **red**, until you complete it (ticking pins it to the day it was done).
 - **Multi-day** all-day events (an *end date*) draw across each day they cover.
-- **Recurrence** — every day / week / month / year, every weekday, or a custom
-  “every N …”. Completing a repeating event (or task) rolls it forward to the next
+- **Recurrence** — every day / week / month / year, every weekday, or on chosen
+  weekdays. **Interval** sets the *N* of “every N weeks”: 2 is every other week, 3 is
+  every third month. Completing a repeating event (or task) rolls it forward to the next
   occurrence (month/year repeats keep their day-of-month, so an end-of-month event
   stays end-of-month). A series can **end**: set “Until” in the editor as a date, or
   type a number into “or times” and the date is computed for you. Completing the last
@@ -73,9 +75,12 @@ change you make in the UI is written straight back into the block.
 - **Deleting one occurrence** — right-click it → **Delete this occurrence**: only that
   date is skipped, the series continues before and after (going on vacation = delete
   two weeks of gym sessions, they resume when you're back). **Delete series** removes
-  the whole event. Skipped dates are stored in the event's `skip` list in the JSON —
-  remove a date there to restore that occurrence. Completing a repeat rolls it past
-  any deleted dates.
+  the whole event. The skipped dates are listed in the event editor under **Skipped** —
+  click one to bring that occurrence back, or **Restore all** to clear the list.
+  Completing a repeat rolls it past any deleted dates.
+- **Postpone** — right-click an item → **Postpone** → *to tomorrow*, *by a week*, or a
+  date you pick. Measured from the day you are looking at, so postponing an overdue
+  task carried forward to today means tomorrow — not the day after its original date.
 - **Colors** — pick one of the theme colors (`red`, `orange`, `yellow`, `green`,
   `blue`, `purple`) in the event editor; it adapts to your theme and renders in
   every view. The default is your theme's accent color.
@@ -95,12 +100,15 @@ Drag a non-recurring event (or task) to move it:
 - **Month / all-day:** drag the chip to another day. Multi-day spans move as a whole.
 - **Week / Day:** drag a timed block to another time or day — it snaps to the grid
   step and keeps its duration. While dragging, a dashed **ghost with the exact time**
-  shows where the block will land (snap included). Drag the **bottom edge** of a block
-  to change its end time. **Draw on empty space** (press and drag vertically) to create
+  shows where the block will land (snap included). Drag the **top or bottom edge** of a
+  block to change its start or end time, and the **ends of a multi-day bar** to stretch
+  the span across days. **Draw on empty space** (press and drag vertically) to create
   an event with exactly that start and length — release and type the title.
+- **Hold Ctrl/Cmd** while releasing to drop a **copy** instead of moving the original.
 
-(Recurring events aren't draggable — which occurrence to move is ambiguous; edit them
-through the event editor instead.)
+Dragging one occurrence of a **recurring** event moves just that occurrence: the original
+date is skipped and the moved copy becomes an ordinary standalone event, leaving the rest
+of the series untouched.
 
 On mobile a **long-press starts the drag** — the context menu is suppressed for
 draggable items there (recurring events keep it: they can't be dragged, and it's the
@@ -140,7 +148,11 @@ month → week → day → agenda. **PageUp/PageDown** switch months (**Shift** 
 resets the week/day slot cursor to the all-day band, keeping the grid focused. **G** goes
 to a date, **F** opens search, **C** copies the period as text. **Tab** steps into the
 selected day's items (**Enter** edits, **Space** completes, **Delete** removes, **M**
-opens the menu, **Escape** steps back out).
+opens the menu, **Escape** steps back out). With an item picked, the **digits 1–7** set
+its color (the swatch order of the editor, 1 being the accent) and **Shift+arrows** move
+the item itself rather than the cursor: left/right by a day, up/down by a week — or, for
+a timed item in week/day, up and down slide it by one grid step of time, duration kept.
+The selection follows the item, so the keys can simply be repeated.
 A **dedicated calendar note** (the block is the whole note, as made by the command)
 focuses the grid on open — the keys work immediately. In a calendar embedded among
 other text, click or Tab onto the grid first (closing an event dialog also returns
@@ -176,6 +188,23 @@ today counts until it **finishes** (the meeting you're sitting in is still what'
 happening); all-day items and tasks count all day, but on *today* they step aside for a
 real appointment still ahead — so an overdue task can't camp there and hide it. Nothing
 upcoming means no item at all. Turn it off in settings.
+
+## Keeping the note small
+
+A calendar that lives in one note keeps everything you ever put in it, and years of
+finished appointments are dead weight in a file you sync. **Delete the past** (the archive
+button, or the *Delete past records* command) clears out what is over: pick a cut-off —
+today, a month back, three months, a year, or a date of your own — and it tells you
+exactly how much would go before you commit. One **Ctrl+Z** brings the whole sweep back.
+
+What it never deletes: an **unfinished task** (it carries forward to today, so it is
+never in the past) and a **repeat that is still running** — one with no end date, or an
+end still ahead. A multi-day event is judged by the day it *ends* on.
+
+Series that stay are still trimmed of their **ballast**: every skipped occurrence and
+every completed occurrence recorded behind the cut-off. In a long-running weekly event
+those accumulated dates are most of what the note is carrying, and none of them can
+matter again.
 
 ## Storage format
 
