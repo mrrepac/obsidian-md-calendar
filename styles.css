@@ -278,6 +278,10 @@
 .dn-ag2-add:hover { color: var(--text-normal); background: var(--background-modifier-hover); }
 .dn-ag2-add .svg-icon { width: 14px; height: 14px; }
 .dn-ag-date {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
   font-size: var(--font-ui-smaller);
   font-weight: 700;
   text-transform: capitalize;
@@ -285,6 +289,15 @@
   border-bottom: 1px solid var(--background-modifier-border);
   padding-bottom: 3px;
   margin-bottom: 4px;
+}
+/* day summary ("3 events · 1 task") — a quiet tail on the date line, never the headline */
+.dn-day-count {
+  flex: 0 0 auto;
+  font-weight: 400;
+  text-transform: none;
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+  white-space: nowrap;
 }
 .dn-ag-date.is-today { color: var(--interactive-accent); }
 .dn-ag-list { display: flex; flex-direction: column; }
@@ -616,6 +629,12 @@ textarea.dn-note-in { resize: vertical; min-height: 34px; font-family: inherit; 
 .dn-search-row:hover .dn-search-edit, .dn-search-row.is-sel .dn-search-edit { opacity: 1; }
 .dn-search-edit:hover { color: var(--text-normal); background: var(--background-modifier-hover); }
 .dn-search-edit .svg-icon { width: 14px; height: 14px; }
+
+/* ---- status bar: what is coming up (desktop) ---- */
+.dn-status { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+.dn-status:hover { color: var(--text-normal); }
+.dn-status-ic { display: inline-flex; color: var(--text-faint); }
+.dn-status .svg-icon { width: 14px; height: 14px; }
 
 /* ---- drag to reschedule ---- */
 .dn-dragging { opacity: .55; box-shadow: var(--shadow-s); }

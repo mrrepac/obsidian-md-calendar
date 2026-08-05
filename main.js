@@ -64,7 +64,7 @@ const STRINGS = {
     allDay: 'All-day',
     more: '+{0} more',
     noEvents: 'No events this day.',
-    gridNav: 'Calendar grid. Arrows or WASD move the day selection (W/S walk the hours in week/day). Tab steps into that day’s items: Enter edits, Space completes, Delete removes, M opens the menu, Escape steps back out. Q/E switch views, PageUp/PageDown months, Enter or Space on a day adds an event, T jumps to today, G goes to a date, F searches',
+    gridNav: 'Calendar grid. Arrows or WASD move the day selection (W/S walk the hours in week/day). Tab steps into that day’s items: Enter edits, Space completes, Delete removes, M opens the menu, Escape steps back out. Q/E switch views, PageUp/PageDown months, Enter or Space on a day adds an event, T jumps to today, G goes to a date, F searches, C copies the period as text',
     newEvent: 'New event',
     editEvent: 'Edit event',
     e_title: 'Title',
@@ -144,6 +144,14 @@ const STRINGS = {
     calTitle: 'Calendar name',
     calTitleHint: 'Shown above the calendar. Leave empty to hide it.',
     nextDay: 'next day',
+    copyPeriod: 'Copy the period as text',
+    copyCmd: 'Copy the visible period as text',
+    copiedPeriod: 'Copied to the clipboard: {0} record(s).',
+    copyEmpty: 'Nothing to copy in this period.',
+    copyFailed: 'Could not write to the clipboard.',
+    txtAllDay: 'all day',
+    stTomorrow: 'tomorrow',
+    stTip: 'MD Calendar — what is coming up. Click to open the calendar.',
     s_viewDesktop: 'Default view (desktop)',
     s_viewMobile: 'Default view (mobile)',
     s_fdow: 'First day of week',
@@ -159,6 +167,8 @@ const STRINGS = {
     s_monthChipsDesc: 'Beyond this, the day shows “+N more”, which lists the rest without leaving the month. Higher values make the rows taller.',
     s_multi: 'Multiple calendars',
     s_multiDesc: 'On — the button creates a new calendar every time. Off — one calendar, the button opens it.',
+    s_status: 'Next event in the status bar',
+    s_statusDesc: 'The nearest upcoming item of the calendar note, at the bottom of the window — without opening the note. Desktop only.',
   },
   ru: {
     untitled: 'Календарь',
@@ -182,7 +192,7 @@ const STRINGS = {
     allDay: 'Весь день',
     more: 'ещё {0}',
     noEvents: 'В этот день событий нет.',
-    gridNav: 'Сетка календаря. Стрелки или WASD двигают указатель по дням (W/S — часы в неделе/дне). Tab заходит внутрь дня, к его событиям: Enter — изменить, пробел — выполнено, Delete — удалить, M — меню, Escape — обратно к дню. Q/E — переключение вида, PageUp/PageDown — месяцы, Enter/пробел на дне — новое событие, T — сегодня, G — переход к дате, F — поиск',
+    gridNav: 'Сетка календаря. Стрелки или WASD двигают указатель по дням (W/S — часы в неделе/дне). Tab заходит внутрь дня, к его событиям: Enter — изменить, пробел — выполнено, Delete — удалить, M — меню, Escape — обратно к дню. Q/E — переключение вида, PageUp/PageDown — месяцы, Enter/пробел на дне — новое событие, T — сегодня, G — переход к дате, F — поиск, C — скопировать период текстом',
     newEvent: 'Новое событие',
     editEvent: 'Изменить событие',
     e_title: 'Название',
@@ -262,6 +272,14 @@ const STRINGS = {
     calTitle: 'Название календаря',
     calTitleHint: 'Показывается над календарём. Пустое поле скрывает заголовок.',
     nextDay: 'след. день',
+    copyPeriod: 'Скопировать период текстом',
+    copyCmd: 'Скопировать видимый период текстом',
+    copiedPeriod: 'Скопировано в буфер, записей: {0}.',
+    copyEmpty: 'В этом периоде копировать нечего.',
+    copyFailed: 'Не удалось записать в буфер обмена.',
+    txtAllDay: 'весь день',
+    stTomorrow: 'завтра',
+    stTip: 'MD Calendar — что дальше. Клик открывает календарь.',
     s_viewDesktop: 'Вид по умолчанию (десктоп)',
     s_viewMobile: 'Вид по умолчанию (мобильный)',
     s_fdow: 'Первый день недели',
@@ -277,6 +295,8 @@ const STRINGS = {
     s_monthChipsDesc: 'Дальше день показывает «ещё N» — список остальных открывается на месте, не уводя из месяца. Чем больше значение, тем выше строки.',
     s_multi: 'Несколько календарей',
     s_multiDesc: 'Вкл — кнопка каждый раз создаёт новый календарь. Выкл — календарь один, кнопка открывает его.',
+    s_status: 'Ближайшее событие в строке состояния',
+    s_statusDesc: 'Ближайшая запись из заметки-календаря внизу окна — не открывая заметку. Только на десктопе.',
   },
 };
 
@@ -288,6 +308,45 @@ function t(key) {
     s = s.replace(/\{(\d+)\}/g, (_, i) => String(arguments[1 + Number(i)] ?? ''));
   }
   return s;
+}
+
+/* Count words for the day summaries. Russian needs three forms (1 событие / 2 события /
+ * 5 событий), English two — so this can't go through t()'s {0} substitution. */
+const PLURALS = {
+  en: { ev: ['event', 'events'], task: ['task', 'tasks'] },
+  ru: { ev: ['событие', 'события', 'событий'], task: ['задача', 'задачи', 'задач'] },
+};
+function plural(n, kind) {
+  const forms = (PLURALS[LANG] || PLURALS.en)[kind];
+  if (LANG !== 'ru') return forms[n === 1 ? 0 : 1];
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return forms[0];
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return forms[1];
+  return forms[2];
+}
+
+/* Everything drawn on one day, spans included. Month and the time grid keep multi-day events
+ * in a SEPARATE list (they draw as continuous bars, not per-day chips), so a day summary has
+ * to put the two back together — otherwise a week away reads as an empty week. */
+function itemsOnDay(byDay, spans, iso) {
+  const out = (byDay.get(iso) || []).slice();
+  for (const it of spans || []) if (it.date <= iso && it.endDate >= iso) out.push(it);
+  return out;
+}
+
+/* "3 events · 1 task" for one day's drawn items. Tasks are counted only while UNDONE — that
+ * is the number that still asks something of you; events are counted as drawn. The tail half
+ * of an event that ran past midnight belongs to the previous day and isn't counted twice. */
+function dayCountLabel(items) {
+  let events = 0, tasks = 0;
+  for (const it of items || []) {
+    if (it.spill === 'tail') continue;
+    if (it.task) { if (!it.done) tasks++; } else events++;
+  }
+  const parts = [];
+  if (events) parts.push(events + ' ' + plural(events, 'ev'));
+  if (tasks) parts.push(tasks + ' ' + plural(tasks, 'task'));
+  return parts.join(' · ');
 }
 
 /* ------------------------------------------------------------------ *
@@ -317,6 +376,7 @@ const DEFAULT_PLUGIN_SETTINGS = {
   calendarNotePath: '',   // remembered single-calendar note (kept fresh across renames)
   completionSound: true,  // a short chime when something is ticked done
   monthChips: 4,          // events drawn in a month cell before "+N more" takes over
+  statusBar: true,        // desktop: show the next upcoming item in Obsidian's status bar
   // Per-block UI state — { "<notePath>::<calId>": { view, showCompleted } }. It lives HERE and
   // not in the note so that paging through views stops rewriting the user's Markdown file.
   viewMemory: {},
@@ -719,8 +779,10 @@ function fastForward(startIso, rep, targetIso) {
   return d;
 }
 
-/* Expand an event's recurrences into concrete dated instances within [from,to] (ISO). */
-function expandInstances(ev, fromIso, toIso) {
+/* Expand an event's recurrences into concrete dated instances within [from,to] (ISO).
+ * `limit` stops after that many instances — callers that only need the FIRST few (the search
+ * ordering, the status bar) must not walk a whole year of a daily series to get them. */
+function expandInstances(ev, fromIso, toIso, limit) {
   const out = [];
   if (!ev.date) return out;
   // diff(...,'days', true) + round: across a DST transition a "day" is 23/25h and the integer
@@ -761,7 +823,10 @@ function expandInstances(ev, fromIso, toIso) {
     let g = 0;
     while (d.isSameOrBefore(end) && g++ < 4000) {
       const iso = d.format('YYYY-MM-DD');
-      if (iso >= ev.date && set.has(d.day()) && occEnd(iso) >= fromIso && !(skip && skip.has(iso))) out.push(instance(ev, iso));
+      if (iso >= ev.date && set.has(d.day()) && occEnd(iso) >= fromIso && !(skip && skip.has(iso))) {
+        out.push(instance(ev, iso));
+        if (limit && out.length >= limit) return out;
+      }
       d.add(1, 'day');
     }
     return out;
@@ -779,7 +844,10 @@ function expandInstances(ev, fromIso, toIso) {
   const capIso = rep.until && rep.until < toIso ? rep.until : toIso; // series end (inclusive)
   let guard = 0;
   while (d <= capIso && guard++ < 4000) {
-    if (occEnd(d) >= fromIso && !(skip && skip.has(d))) out.push(instance(ev, d));
+    if (occEnd(d) >= fromIso && !(skip && skip.has(d))) {
+      out.push(instance(ev, d));
+      if (limit && out.length >= limit) return out;
+    }
     d = advanceDue(d, rep);
   }
   return out;
@@ -926,7 +994,7 @@ const VIEW_STATES = new Map();
 function viewState(key) {
   let v = VIEW_STATES.get(key);
   if (!v) {
-    v = { view: null, seeded: false, showCompleted: true, anchor: isoToday(), selItem: null, addDraft: '', hintOpen: false, focusAddUntil: 0 };
+    v = { view: null, seeded: false, showCompleted: true, anchor: isoToday(), selItem: null, addDraft: '', focusAddUntil: 0 };
     VIEW_STATES.set(key, v);
   }
   return v;
@@ -941,7 +1009,6 @@ class CalendarRenderer {
     this.app = plugin.app;
     this.el = el;
     this.ctx = ctx;
-    this.child = child;
     this.parseError = null;
     this._persistTimer = null;
     this._persistRetries = 0;
@@ -1060,7 +1127,6 @@ class CalendarRenderer {
   destroy() {
     this._destroyed = true; // stops _armPersist() re-arming a dead timer during the flush below
     if (this._persistTimer) clearTimeout(this._persistTimer);
-    if (this._autoFocusTimer) clearTimeout(this._autoFocusTimer);
     if (this._dirty) this.persist().catch((e) => console.error('MD Calendar: flush on teardown failed', e));
     this.abortDrags();
     if (this._placeCleanup) this._placeCleanup();
@@ -1342,6 +1408,7 @@ class CalendarRenderer {
     }
 
     this.iconBtn(right, 'search', t('search'), () => this.openSearch());
+    this.iconBtn(right, 'clipboard-copy', t('copyPeriod'), () => this.copyPeriod());
     this.iconBtn(right, 'pencil', t('calTitle'), () => this.openTitleEdit());
     const showDone = this.showCompleted();
     this.iconBtn(right, showDone ? 'eye' : 'eye-off', showDone ? t('hideCompleted') : t('showCompleted'),
@@ -1392,7 +1459,6 @@ class CalendarRenderer {
   buildAddBar(root) {
     const v = this.view();
     const wrap = root.createDiv({ cls: 'dn-addbar' });
-    this.addBarEl = wrap;
     const row = wrap.createDiv({ cls: 'dn-add-row' });
     setIcon(row.createSpan({ cls: 'dn-add-plus' }), 'plus');
     this.addInput = row.createEl('input', {
@@ -1591,7 +1657,7 @@ class CalendarRenderer {
       // editing or deleting anything needed the mouse.
       const item = this.selectedItem();
       let handled = true;
-      if (k === 'Tab') this.selectItem(e.shiftKey ? -1 : 1);
+      if (k === 'Tab') handled = this.selectItem(e.shiftKey ? -1 : 1);
       else if (k === 'ArrowLeft' || code === 'KeyA') this.moveSelection(-1);
       else if (k === 'ArrowRight' || code === 'KeyD') this.moveSelection(1);
       else if (k === 'ArrowUp' || code === 'KeyW') { if (timeGrid) this.moveSelSlot(-1); else this.moveSelection(-7); }
@@ -1609,7 +1675,7 @@ class CalendarRenderer {
       } else if (k === 'Enter') {
         if (item) this.onItemClick(item);
         else this.openQuickCreate(v.anchor, this._slotStart() || undefined);
-      } else if (k === ' ' || code === 'Space') {
+      } else if (k === ' ') {
         if (item) this.toggleDone(item);
         else this.openQuickCreate(v.anchor, this._slotStart() || undefined);
       } else if (k === 'Delete' || k === 'Backspace') {
@@ -1619,6 +1685,7 @@ class CalendarRenderer {
       } else if (code === 'KeyT') this.goToday();
       else if (code === 'KeyG') this.openGoToDate();
       else if (code === 'KeyF') this.openSearch();
+      else if (code === 'KeyC') this.copyPeriod();
       else if (k === 'Escape') {
         // Step out of the item selection first; only a second Escape leaves the grid.
         if (item) { v.selItem = null; this.render(); } else grid.blur();
@@ -1650,17 +1717,20 @@ class CalendarRenderer {
   }
 
   /* Tab / Shift+Tab through the day's items. Stepping past either end drops back to
-   * day level rather than wrapping straight round, so the day itself stays reachable. */
+   * day level rather than wrapping straight round, so the day itself stays reachable.
+   * Returns false when there is nothing to step into — the caller then leaves Tab alone,
+   * so a day with no items doesn't trap keyboard focus inside the calendar. */
   selectItem(dir) {
     const v = this.view();
     const list = this._daySel || [];
-    if (!list.length) { v.selItem = null; return; }
+    if (!list.length) { v.selItem = null; return false; }
     const cur = (typeof v.selItem === 'number') ? v.selItem : null;
     let next;
     if (cur == null) next = dir > 0 ? 0 : list.length - 1;
     else next = cur + dir;
     v.selItem = (next < 0 || next >= list.length) ? null : next;
     this.render();
+    return true;
   }
 
   /* The context menu for the keyboard-selected item, anchored to its own box. */
@@ -1779,6 +1849,78 @@ class CalendarRenderer {
     new TitleModal(this.app, this).open();
   }
 
+  /* ---- copy the visible period as plain Markdown ---- */
+  /* What you SEE is what you get: the completed-items filter applies, a multi-day span is
+   * written ONCE (filed under its first visible day, with its real date range) instead of
+   * repeated on every day it covers, and an event running past midnight is one line rather
+   * than a head and a tail. Meant to be pasted into a chat or another note as-is. */
+  periodMarkdown() {
+    const v = this.view();
+    const anchorM = moment(v.anchor, 'YYYY-MM-DD');
+    // Month and agenda copy the MONTH, not the 6-week grid on screen: the neighbouring-month
+    // cells are padding, and nobody means them by "this month".
+    const range = (v.view === 'month' || v.view === 'agenda')
+      ? { from: moment(anchorM).startOf('month').format('YYYY-MM-DD'), to: moment(anchorM).endOf('month').format('YYYY-MM-DD') }
+      : rangeForView(v.view, anchorM);
+    const items = this.itemsInRange(range.from, range.to);
+
+    const byDay = new Map();
+    let n = 0;
+    for (const it of items) {
+      // A span that began before the period is filed under its first day inside it; everything
+      // else under its own day. itemsInRange reaches one day back, so drop what falls outside.
+      const day = (isSpanItem(it) && it.date < range.from) ? range.from : it.date;
+      if (day < range.from || day > range.to) continue;
+      if (!byDay.has(day)) byDay.set(day, []);
+      byDay.get(day).push(it);
+      n++;
+    }
+
+    const lines = ['## ' + (this.model.title ? this.model.title + ' — ' : '') + periodLabel(v.view, anchorM), ''];
+    for (const iso of Array.from(byDay.keys()).sort()) {
+      lines.push('**' + cap(moment(iso, 'YYYY-MM-DD').format('dd, D MMMM')) + '**');
+      for (const it of byDay.get(iso).sort(cmpItems)) lines.push(...this.itemMarkdown(it));
+      lines.push('');
+    }
+    return { text: lines.join('\n').trim() + '\n', n };
+  }
+
+  itemMarkdown(it) {
+    let body = it.title || '…';
+    if (it.done && !it.task) body = '~~' + body + '~~'; // a task carries its state in the checkbox
+    let line;
+    if (it.task) {
+      line = '- [' + (it.done ? 'x' : ' ') + '] ' + body;
+    } else if (isSpanItem(it)) {
+      const dm = (iso) => cap(moment(iso, 'YYYY-MM-DD').format('D MMM'));
+      line = '- ' + body + ' (' + dm(it.date) + ' – ' + dm(it.endDate) + ')';
+    } else if (it.allDay) {
+      line = '- ' + t('txtAllDay') + ' · ' + body;
+    } else {
+      const when = it.start + (it.end ? '–' + it.end : '') + (crossesMidnight(it) ? ' (' + t('nextDay') + ')' : '');
+      line = '- ' + when + ' · ' + body;
+    }
+    const out = [line];
+    // The description rides along, indented under its item, so a multi-line note stays part of
+    // the same list entry when the text is pasted back into Markdown.
+    if (it.note) for (const nl of String(it.note).split('\n')) out.push('  ' + nl);
+    return out;
+  }
+
+  async copyPeriod() {
+    if (this.view().pending) return; // placement mode owns the flow
+    const { text, n } = this.periodMarkdown();
+    if (!n) { new Notice(t('copyEmpty')); return; }
+    try {
+      await navigator.clipboard.writeText(text);
+      new Notice(t('copiedPeriod', n));
+    } catch (e) {
+      console.error('MD Calendar: clipboard write failed', e);
+      new Notice(t('copyFailed'));
+    }
+    returnFocusToGrid(this);
+  }
+
   moveSelection(days) {
     const v = this.view();
     v.anchor = moment(v.anchor || isoToday(), 'YYYY-MM-DD').add(days, 'day').format('YYYY-MM-DD');
@@ -1824,12 +1966,12 @@ class CalendarRenderer {
       for (let c = 0; c < 7; c++) {
         const d = moment(weekStartM).add(c, 'day');
         const iso = d.format('YYYY-MM-DD');
-        const dayItems0 = byDay.get(iso) || [];
+        const count0 = dayCountLabel(itemsOnDay(byDay, spans, iso)); // "3 events · 1 task" — the hover/AT summary
         const cell = week.createDiv({
           cls: 'dn-day' + (d.month() !== curMonth ? ' is-other' : '') + (iso === todayIso ? ' is-today' : '') + (iso === v.anchor ? ' is-sel' : '') + (v.pending && iso === v.pending.cursor ? ' is-cursor' : ''),
           attr: {
             role: 'gridcell',
-            'aria-label': cap(d.format('dddd, D MMMM')) + (dayItems0.length ? ' — ' + dayItems0.length : ''),
+            'aria-label': cap(d.format('dddd, D MMMM')) + (count0 ? ' — ' + count0 : ''),
             'aria-selected': String(iso === v.anchor),
           },
         });
@@ -2064,8 +2206,11 @@ class CalendarRenderer {
 
     // selected-day panel: the familiar agenda rows (checkboxes, notes, context menu)
     const panel = wrap.createDiv({ cls: 'dn-ag2-day' });
-    panel.createDiv({ cls: 'dn-ag-date' + (selIso === todayIso ? ' is-today' : ''), text: relDayLabel(selIso) });
     const dayItems = byDay.get(selIso) || [];
+    const dateRow = panel.createDiv({ cls: 'dn-ag-date' + (selIso === todayIso ? ' is-today' : '') });
+    dateRow.createSpan({ text: relDayLabel(selIso) });
+    const count = dayCountLabel(dayItems);
+    if (count) dateRow.createSpan({ cls: 'dn-day-count', text: count });
     if (dayItems.length) {
       const ul = panel.createDiv({ cls: 'dn-ag-list' });
       for (const it of dayItems) this.buildAgendaItem(ul, it, selIso);
@@ -2199,10 +2344,16 @@ class CalendarRenderer {
     colhead.createDiv({ cls: 'dn-tg-corner' });
     for (const d of dayMoments) {
       const iso = d.format('YYYY-MM-DD');
-      const h = colhead.createDiv({ cls: 'dn-tg-dayhead' + (iso === todayIso ? ' is-today' : '') });
+      const count = dayCountLabel(itemsOnDay(byDay, spans, iso));
+      const h = colhead.createDiv({
+        cls: 'dn-tg-dayhead' + (iso === todayIso ? ' is-today' : ''),
+        attr: { 'aria-label': cap(d.format('dddd, D MMMM')) + (count ? ' — ' + count : '') },
+      });
       h.createSpan({ cls: 'dn-tg-dow', text: cap(d.format('ddd')) });
       const num = h.createSpan({ cls: 'dn-tg-daynum', text: String(d.date()) });
       num.addEventListener('click', () => { this.view().anchor = iso; this.setView('day'); this.render(); });
+      // Day view has one wide column with room to spare — spell the summary out there.
+      if (dayMoments.length === 1 && count) h.createSpan({ cls: 'dn-day-count', text: count });
     }
 
     // all-day gutter — single-day items are chips in their day cell; multi-day spans draw
@@ -2305,16 +2456,24 @@ class CalendarRenderer {
       }
     }
 
-    // scroll so the keyboard slot cursor — else the current hour when today is on screen, else
+    // Scroll so the keyboard slot cursor — else the current hour when today is on screen, else
     // the top of the working day — is in view. The slot cursor and "now" get centered; the plain
-    // 8:00 fallback just sits near the top.
+    // 8:00 fallback just sits near the top. On the FIRST render the block is not always laid out
+    // yet: clientHeight reads 0, the arithmetic collapses to 0 and the grid opens at the start of
+    // the day instead of at "now". Retry on the next frame until the browser gives it a height.
     const totalMin = dayEndMin - dayStartMin;
     const nowMin = moment().hours() * 60 + moment().minutes();
     const showsNow = this._timeGridInfo.cols.has(todayIso) && nowMin >= dayStartMin && nowMin <= dayEndMin;
     const centered = (typeof v.selSlot === 'number') || showsNow;
     const focusMin = (typeof v.selSlot === 'number') ? v.selSlot * 60 : (showsNow ? nowMin : Math.max(dayStartMin, 8 * 60));
-    const pad = centered ? Math.max(20, scroll.clientHeight / 2 - 22) : 20;
-    scroll.scrollTop = Math.max(0, ((focusMin - dayStartMin) / totalMin) * inner.clientHeight - pad);
+    const applyScroll = (tries) => {
+      if (this._destroyed || !scroll.isConnected) return; // a re-render replaced this grid
+      const innerH = inner.clientHeight;
+      if (!innerH) { if (tries < 30) window.requestAnimationFrame(() => applyScroll(tries + 1)); return; }
+      const pad = centered ? Math.max(20, scroll.clientHeight / 2 - 22) : 20;
+      scroll.scrollTop = Math.max(0, ((focusMin - dayStartMin) / totalMin) * innerH - pad);
+    };
+    applyScroll(0);
   }
 
   /* ---- item styling / interaction ---- */
@@ -3274,7 +3433,7 @@ class EventModal extends Modal {
         this.close();
       });
     }
-    const spacer = foot.createDiv({ cls: 'dn-foot-spacer' });
+    foot.createDiv({ cls: 'dn-foot-spacer' });
     foot.createEl('button', { text: t('cancel') }).addEventListener('click', () => this.close());
     const save = foot.createEl('button', { cls: 'mod-cta', text: t('save') });
     let committed = false; // plain Enter and the button can both fire — never save (or add) twice
@@ -3531,7 +3690,7 @@ class QuickCreateModal extends Modal {
 function nextOccurrenceDate(ev, fromIso) {
   if (!ev.repeat || ev.date >= fromIso) return ev.date;
   const horizon = moment(fromIso, 'YYYY-MM-DD').add(400, 'day').format('YYYY-MM-DD');
-  const insts = expandInstances(ev, fromIso, horizon);
+  const insts = expandInstances(ev, fromIso, horizon, 1); // only the first — see expandInstances
   return insts.length ? insts[0].date : ev.date;
 }
 
@@ -3748,23 +3907,31 @@ class ConfirmModal extends Modal {
  * back to the grid so the arrows keep working. */
 class GoToDateModal extends Modal {
   constructor(app, renderer) { super(app); this.renderer = renderer; }
+
+  // Same as the other modals: a reprocess may have replaced the renderer we were opened
+  // against, and jumping a destroyed one would silently do nothing.
+  live() {
+    const r = this.renderer;
+    return (r.plugin.liveRenderers && r.plugin.liveRenderers.get(r.stateKey())) || r;
+  }
+
   onOpen() {
     const { contentEl, titleEl } = this;
     contentEl.addClass('dn-modal');
     if (this.modalEl) this.modalEl.addClass('dn-event-modal');
     titleEl.setText(t('goToDate'));
-    const v = this.renderer.view();
+    const v = this.live().view();
     const row = contentEl.createDiv({ cls: 'dn-row' });
     const input = row.createEl('input', { cls: 'dn-in dn-grow', attr: { type: 'date', value: v.anchor || isoToday() } });
     setTimeout(() => { input.focus(); }, 0);
-    const go = () => { const iso = toIsoDate(input.value); this.close(); if (iso) this.renderer.goToDate(iso); };
+    const go = () => { const iso = toIsoDate(input.value); this.close(); if (iso) this.live().goToDate(iso); };
     const foot = contentEl.createDiv({ cls: 'dn-modal-foot' });
     foot.createDiv({ cls: 'dn-foot-spacer' });
-    foot.createEl('button', { text: t('today') }).addEventListener('click', () => { this.close(); this.renderer.goToday(); });
+    foot.createEl('button', { text: t('today') }).addEventListener('click', () => { this.close(); this.live().goToday(); });
     foot.createEl('button', { cls: 'mod-cta', text: t('goBtn') }).addEventListener('click', go);
     contentEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
   }
-  onClose() { this.contentEl.empty(); returnFocusToGrid(this.renderer); }
+  onClose() { this.contentEl.empty(); returnFocusToGrid(this.live()); }
 }
 
 /* ------------------------------------------------------------------ *
@@ -3870,6 +4037,18 @@ class MdCalendarSettingTab extends PluginSettingTab {
         await this.plugin.saveSettings();
       }));
 
+    // Desktop only — a phone has no status bar to put it in.
+    if (!IS_MOBILE()) {
+      new Setting(containerEl)
+        .setName(t('s_status'))
+        .setDesc(t('s_statusDesc'))
+        .addToggle((tg) => tg.setValue(!!this.plugin.settings.statusBar).onChange(async (v) => {
+          this.plugin.settings.statusBar = v;
+          await this.plugin.saveSettings();
+          this.plugin.refreshStatusBar(v); // turning it on may need the one-off vault scan
+        }));
+    }
+
     new Setting(containerEl)
       .setName(t('s_multi'))
       .setDesc(t('s_multiDesc'))
@@ -3896,6 +4075,21 @@ function calendarBlockRanges(doc) {
     else if (DN_FENCE_CLOSE.test(line.text)) { out.push([from, line.to]); from = -1; }
   }
   if (from >= 0) out.push([from, doc.length]);
+  return out;
+}
+
+/* The JSON bodies of every md-calendar block in a note's RAW text. This is how the status bar
+ * reads a calendar with no renderer anywhere — the note doesn't have to be open. An unterminated
+ * block runs to the end of the note, same as the editor renders it. */
+function extractCalendarBlocks(text) {
+  const lines = String(text || '').split('\n');
+  const out = [];
+  let open = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (open < 0) { if (DN_FENCE_OPEN.test(lines[i])) open = i; }
+    else if (DN_FENCE_CLOSE.test(lines[i])) { out.push(lines.slice(open + 1, i).join('\n')); open = -1; }
+  }
+  if (open >= 0) out.push(lines.slice(open + 1).join('\n'));
   return out;
 }
 
@@ -3971,6 +4165,16 @@ class MdCalendarPlugin extends Plugin {
         return true;
       },
     });
+    this.addCommand({
+      id: 'copy-period',
+      name: t('copyCmd'),
+      checkCallback: (checking) => {
+        const r = this.activeRenderer();
+        if (!r) return false;
+        if (!checking) r.copyPeriod();
+        return true;
+      },
+    });
     // Single-calendar mode (default) is open-or-create, so the labels say "open"; the
     // multi-calendar setting flips them back to "create" (applied on plugin reload).
     const noteCmdLabel = t(this.settings.multiCalendar ? 'newNoteCmd' : 'openNoteCmd');
@@ -3984,6 +4188,21 @@ class MdCalendarPlugin extends Plugin {
         this.saveSettings();
       }
     }));
+    // The status bar exists on desktop only. Created once and hidden when the setting is off,
+    // rather than added/removed on every toggle (addStatusBarItem only unregisters on unload).
+    if (!IS_MOBILE()) {
+      this.statusEl = this.addStatusBarItem();
+      this.statusEl.addClass('dn-status');
+      this.statusEl.addEventListener('click', () => this.openStatusItem());
+      this.registerInterval(window.setInterval(() => this.refreshStatusBar(), 60 * 1000));
+      this.registerEvent(this.app.vault.on('modify', (f) => {
+        if (this._statusPath && f.path === this._statusPath) this.refreshStatusBar();
+      }));
+      // One vault scan at startup to find the calendar note; after that the remembered path
+      // (or an open block) answers the question without touching the disk.
+      this.app.workspace.onLayoutReady(() => this.refreshStatusBar(true));
+    }
+
     this.addSettingTab(new MdCalendarSettingTab(this.app, this));
   }
 
@@ -4011,6 +4230,114 @@ class MdCalendarPlugin extends Plugin {
       if (!fallback) fallback = r;
     }
     return fallback;
+  }
+
+  /* ---- status bar: the next thing coming up, with the note closed ---- */
+  /* Reads the calendar NOTE rather than a rendered block — that is the whole point of it. The
+   * file is parsed at most once per revision; deciding which item is next is cheap and re-runs
+   * every minute. Any failure just hides the item: a status bar must never be a source of noise. */
+  async refreshStatusBar(rescan) {
+    const el = this.statusEl;
+    if (!el) return;
+    if (!this.settings.statusBar) { el.toggleClass('dn-hide', true); return; }
+    try {
+      const file = await this.statusFile(rescan);
+      const item = file ? this.nextUp(await this.statusEvents(file)) : null;
+      this._statusItem = item;
+      el.empty();
+      el.toggleClass('dn-hide', !item);
+      if (!item) return;
+      setIcon(el.createSpan({ cls: 'dn-status-ic' }), 'calendar-clock');
+      el.createSpan({ cls: 'dn-status-text', text: this.statusLabel(item) });
+      el.setAttribute('aria-label', (item.title || '…') + (item.note ? ' — ' + item.note : '') + ' · ' + t('stTip'));
+    } catch (e) {
+      console.error('MD Calendar: status bar refresh failed', e);
+      el.toggleClass('dn-hide', true);
+    }
+  }
+
+  /* Which note the status bar reads: the remembered single-calendar path while it exists, else
+   * whatever calendar block is open right now. Only failing both does it scan the vault, and
+   * only when asked (startup) — a scan reads every note that holds a code block. */
+  async statusFile(rescan) {
+    const remembered = this.settings.calendarNotePath && this.app.vault.getAbstractFileByPath(this.settings.calendarNotePath);
+    if (remembered instanceof TFile) { this._statusPath = remembered.path; return remembered; }
+    const open = this.activeRenderer();
+    const byOpen = open && this.app.vault.getAbstractFileByPath(open.ctx.sourcePath);
+    if (byOpen instanceof TFile) { this._statusPath = byOpen.path; return byOpen; }
+    if (!rescan) return null;
+    const found = await this.findCalendarNote();
+    this._statusPath = found ? found.path : null;
+    return found;
+  }
+
+  /* The events of every md-calendar block in `file`, cached per file revision. */
+  async statusEvents(file) {
+    const stamp = file.path + ':' + file.stat.mtime;
+    if (this._statusCache && this._statusCache.stamp === stamp) return this._statusCache.events;
+    const text = await this.app.vault.cachedRead(file);
+    const events = [];
+    for (const src of extractCalendarBlocks(text)) {
+      let parsed;
+      try { parsed = JSON.parse(src.trim() || '{}'); } catch (e) { continue; } // a broken block is the renderer's story to tell
+      for (const ev of normalizeCal(parsed, this.settings).events) events.push(ev);
+    }
+    this._statusCache = { stamp, events };
+    return events;
+  }
+
+  /* The soonest undone instance from now on. A timed item counts until it FINISHES — a meeting
+   * you are sitting in is still what's happening — while all-day items and tasks count all day. */
+  nextUp(events) {
+    const today = isoToday();
+    const horizon = moment().add(14, 'day').format('YYYY-MM-DD');
+    const nowMin = moment().hours() * 60 + moment().minutes();
+    let best = null;
+    for (const ev of events) {
+      // A handful per event is plenty: only the earliest few can win, and at most today's are
+      // already over. Without the cap a daily series would expand two weeks every minute.
+      for (const it of expandInstances(ev, today, horizon, 4)) {
+        if (it.done) continue;
+        // On a FUTURE day an all-day item leads ("tomorrow: on tour"). On TODAY it sorts last:
+        // you have already seen it, whereas the meeting in an hour is what's actually next —
+        // and an overdue task carried forward to today would otherwise sit here forever.
+        const startMin = it.allDay ? (it.date === today ? DAY_MIN : 0) : (timeToMin(it.start) || 0);
+        if (it.date === today && !it.allDay && !crossesMidnight(it)) {
+          const endMin = it.end ? timeToMin(it.end) : startMin + CFG.defaultDur;
+          if (endMin != null && endMin <= nowMin) continue; // already finished
+        }
+        const rank = it.date + ' ' + String(startMin).padStart(4, '0');
+        if (!best || rank < best.rank) best = { rank, it };
+      }
+    }
+    return best ? best.it : null;
+  }
+
+  statusLabel(it) {
+    const today = isoToday();
+    const tomorrow = moment().add(1, 'day').format('YYYY-MM-DD');
+    let when;
+    if (it.date === today) when = it.allDay ? t('today') : it.start;
+    else if (it.date === tomorrow) when = t('stTomorrow') + (it.allDay ? '' : ' ' + it.start);
+    else when = cap(moment(it.date, 'YYYY-MM-DD').format('D MMM')) + (it.allDay ? '' : ' ' + it.start);
+    const title = it.title || '…';
+    return when + ' · ' + (title.length > 42 ? title.slice(0, 41) + '…' : title);
+  }
+
+  /* Click the status bar: open the calendar note and land on that item's day. */
+  async openStatusItem() {
+    const path = this._statusPath;
+    const file = path && this.app.vault.getAbstractFileByPath(path);
+    if (!(file instanceof TFile)) return;
+    await this.app.workspace.getLeaf(false).openFile(file);
+    const iso = this._statusItem && this._statusItem.date;
+    if (!iso) return;
+    // The block renders after the file opens — give it a beat, then jump whichever renderer appeared.
+    setTimeout(() => {
+      for (const r of this.allRenderers) {
+        if (!r._destroyed && r.model && r.ctx.sourcePath === path) { r.goToDate(iso); return; }
+      }
+    }, 250);
   }
 
   async saveSettings() { this._syncCfg(); await this.saveData(this.settings); }

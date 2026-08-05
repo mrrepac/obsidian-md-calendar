@@ -29,8 +29,21 @@ change you make in the UI is written straight back into the block.
 
 - **‹ Today ›** — page back/forward by the current view's period, or jump to today.
 - **Month · Week · Day · Agenda** — switch views. Your choice is remembered per note.
+- **Period heading** — click it to jump to any date (**G** on the grid does the same).
+- **Search** (🔍) — find an event by title or description anywhere in the calendar,
+  upcoming first. **Enter** jumps to its date, **Ctrl/Cmd+Enter** opens it. **F** on the
+  grid, or the *Find an event* command.
+- **Copy the period as text** — puts what you are looking at into the clipboard as a
+  plain Markdown list: a heading, a block per day, times, task checkboxes and
+  descriptions. Month and agenda copy the **month itself**, not the padding days of the
+  grid; a multi-day event is written once with its date range; hidden completed items
+  stay hidden. **C** on the grid, or the *Copy the visible period as text* command.
+- **Calendar name** (pencil) — the optional heading above the controls. Empty hides it.
 - **Completed toggle** — show or hide done events. The **trash button** next to it
   deletes every completed item.
+- **Records without a date** — a record whose date is missing or unreadable is never
+  dropped: an orange strip appears, and **Sort out** lets you give each one a date or
+  delete it. Until then it round-trips into the note untouched.
 - **Add bar** — type a title and press **Enter**: the calendar enters **placement
   mode** — a banner appears and you pick the day (in month or the agenda
   mini-calendar, or the all-day strip / an hour slot in week/day) by click or by
@@ -107,6 +120,11 @@ way to delete one occurrence on a phone).
   on narrow screens. Click the selected day again to create an event there. The
   friendliest view on mobile.
 
+The selected day carries a quiet **summary** — “3 events · 1 task” — on the agenda date
+line and in the day view's column header (in month view it's the day cell's tooltip).
+Tasks are counted only while **undone**: that is the number that still asks something of
+you. Events are counted as drawn.
+
 On a phone the switcher offers just **Agenda and Day** — agenda by default (its dotted
 mini calendar is the month overview). The view saved in the note by your desktop is
 left untouched: the phone only narrows what it shows, per session.
@@ -119,7 +137,10 @@ hour slots and back up. **Enter** or **Space** creates an event on the selection
 hour slot it carries that time into the dialog. **Q/E** cycle the view left/right through
 month → week → day → agenda. **PageUp/PageDown** switch months (**Shift** — a year),
 **Home/End** jump to the week's edges. **T** — like the **Today** button — jumps the selection to today and
-resets the week/day slot cursor to the all-day band, keeping the grid focused.
+resets the week/day slot cursor to the all-day band, keeping the grid focused. **G** goes
+to a date, **F** opens search, **C** copies the period as text. **Tab** steps into the
+selected day's items (**Enter** edits, **Space** completes, **Delete** removes, **M**
+opens the menu, **Escape** steps back out).
 A **dedicated calendar note** (the block is the whole note, as made by the command)
 focuses the grid on open — the keys work immediately. In a calendar embedded among
 other text, click or Tab onto the grid first (closing an event dialog also returns
@@ -132,9 +153,19 @@ and on mobile the delete notice carries a one-tap **Undo** button.
 **Settings:** default view (desktop and mobile separately), the first day of the week
 (Obsidian's locale, or a fixed day), the working-hours window (default 07–22), the
 duration of a new timed event (default one hour), the drag/resize snap step
-(15 / 30 / 60 minutes), and the completion chime (a soft synthesized two-note sound
-on ticking something done — no audio files involved). Times are shown in 24-hour
-format.
+(15 / 30 / 60 minutes), how many events a month cell shows before “+N more”, the
+completion chime (a soft synthesized two-note sound on ticking something done — no
+audio files involved), and the status-bar item below. Times are shown in 24-hour format.
+
+## What's coming up
+
+On desktop the **status bar** shows the next thing in your calendar — `16:00 · Rehearsal`
+— with the note closed: it reads the calendar note from disk, refreshes every minute and
+whenever that note changes, and a click opens the calendar on that day. A timed event
+today counts until it **finishes** (the meeting you're sitting in is still what's
+happening); all-day items and tasks count all day, but on *today* they step aside for a
+real appointment still ahead — so an overdue task can't camp there and hide it. Nothing
+upcoming means no item at all. Turn it off in settings.
 
 ## Storage format
 
