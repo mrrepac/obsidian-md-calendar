@@ -762,9 +762,17 @@ body.dn-drag-active.dn-copy { cursor: copy; } /* Ctrl/Cmd held → drop leaves a
 .md-calendar.is-full .dn-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 /* month: the six week rows already share the space (flex: 1 1 0 each) — just give them some */
 .md-calendar.is-full .dn-month { flex: 1 1 auto; }
-/* week/day: the hour body takes the slack instead of stopping at 60vh */
+/* week/day: the hour body takes the slack instead of stopping at 60vh. The day header and the
+ * all-day row must NOT take part of that shrink themselves — .dn-tg-colhead's overflow:hidden
+ * (kept for its scrollbar-gutter, see above) also strips its flexbox content-based minimum size,
+ * so without pinning it here a short pane shrinks it right along with the scroll body, clipping
+ * the today badge mid-circle on a phone where headroom is tight. Only the scroll body may give
+ * up height — it has somewhere to put the overflow (itself, by scrolling); the header and the
+ * all-day strip do not. */
 .md-calendar.is-full .dn-timegrid { flex: 1 1 auto; min-height: 0; }
-.md-calendar.is-full .dn-tg-scroll { flex: 1 1 auto; max-height: none; }
+.md-calendar.is-full .dn-tg-colhead,
+.md-calendar.is-full .dn-tg-allday { flex: 0 0 auto; }
+.md-calendar.is-full .dn-tg-scroll { flex: 1 1 auto; min-height: 0; max-height: none; }
 /* agenda: the mini calendar keeps its width, the day panel gets the height and scrolls itself */
 .md-calendar.is-full .dn-ag2 { flex: 1 1 auto; min-height: 0; align-items: stretch; }
 .md-calendar.is-full .dn-ag2-day { overflow-y: auto; }
