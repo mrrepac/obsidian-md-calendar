@@ -25,9 +25,17 @@ const {
   moment,
   setIcon,
   MarkdownRenderChild,
+  editorLivePreviewField,
 } = require('obsidian');
 // Obsidian resolves this at runtime for unbundled plugins, same as 'obsidian'.
 const { EditorView } = require('@codemirror/view');
+const { EditorState } = require('@codemirror/state');
+
+/* Floor for the full-bleed height. A note carrying enough text under the calendar can't have
+ * both fit; past this point the grid stops being usable, so the note keeps its scrollbar
+ * instead of the calendar being crushed. */
+const MIN_FILL = 340;
+
 
 /* ------------------------------------------------------------------ *
  * i18n — English by default, Russian when Obsidian's language is ru.  *
@@ -1449,7 +1457,7 @@ class CalendarRenderer {
     const nodes = this._bleedNodes || [];
     this._bleedNodes = [];
     if (final && this._sharesNoteWithLiveCalendar()) return;
-    for (const n of nodes) n.removeClass('dn-bleed');
+    for (const n of nodes) { n.removeClass('dn-bleed'); n.removeClass('dn-owns-pane'); }
   }
 
   _sharesNoteWithLiveCalendar() {
@@ -1460,15 +1468,99 @@ class CalendarRenderer {
     return false;
   }
 
-  /* The height left between the top of the block and the bottom of the pane. Measured, not
-   * guessed at with vh: the note header, a tab bar and the block's own offset all move it.
-   * Same first-render problem as the time grid's scroll — retry until the pane has a box. */
+  /* Fit the block to the pane exactly: the note must not scroll, and no strip of dead space may
+   * be left under the calendar.
+   *
+   * Everything here is read off element boxes. The obvious reading — scrollHeight minus
+   * clientHeight — is unusable twice over. It is stale: CodeMirror keeps its own height map for
+   * the note and will not re-measure a block widget in the same frame, so shrinking by what it
+   * reports and reading again subtracts the same figure twice, which is what chopped the
+   * calendar in half. And it can never show slack: .cm-sizer carries min-height:100%, so the
+   * content is padded out to the viewport and a block that is too SHORT measures exactly like
+   * one that fits. The distance from the bottom of the block's own margin box to the inside
+   * bottom of the scroller is visible in both directions and lands in one step. */
   _fillHeight(pane, tries) {
     if (this._destroyed || !this.el.isConnected) return;
-    const pr = pane.getBoundingClientRect();
-    if (!pr.height) { if (tries < 30) window.requestAnimationFrame(() => this._fillHeight(pane, tries + 1)); return; }
-    const avail = Math.round(pr.bottom - this.el.getBoundingClientRect().top - 12); // a little air at the bottom
-    this.el.style.setProperty('--dn-fill', Math.max(340, avail) + 'px');
+    // The scrolling box is .cm-scroller while editing and .markdown-preview-view when reading.
+    const scroller = this.el.closest('.cm-scroller, .markdown-preview-view');
+    const sr = scroller && scroller.getBoundingClientRect();
+    // First render runs before the block is in the document — come back when there is a box.
+    if (!sr || !sr.height) { if ((tries || 0) < 30) window.requestAnimationFrame(() => this._fillHeight(pane, (tries || 0) + 1)); return; }
+    this._settleFill(scroller, 0);
+  }
+
+  /* One step of the fit, repeated only while it still moves. Growing the block reflows what is
+   * inside it, so the second reading can differ from the first; three passes are plenty and the
+   * "already there" test below stops it dead when the block refuses to shrink any further
+   * (a month grid has six rows of minimum height and will not go below them). */
+  _settleFill(scroller, pass) {
+    if (this._destroyed || !this.el.isConnected) return;
+    const cs = getComputedStyle(scroller);
+    const sr = scroller.getBoundingClientRect();
+    // Inside bottom edge of the scroller: its box, less its border and its own bottom padding.
+    const inner = sr.bottom - (parseFloat(cs.borderBottomWidth) || 0) - (parseFloat(cs.paddingBottom) || 0);
+    // Measure the outermost wrapper, not the calendar itself: Obsidian puts the rendered block
+    // inside a container of its own, and that container's bottom margin is below the calendar.
+    const top = this._blockTop();
+    const tr = top.getBoundingClientRect();
+    const foot = parseFloat(getComputedStyle(top).marginBottom) || 0;
+    const after = this._afterBlock(top);
+    // With nothing after the calendar, nothing in the note can be out of reach — so hide the
+    // pane's scrollbar instead of leaving one standing for the last pixel of editor chrome.
+    // With something after it, the bar stays: it is the only way down to that text.
+    const alone = this._nothingFollows();
+    scroller.toggleClass('dn-owns-pane', alone === null ? after === 0 : alone);
+    const delta = Math.round(inner - (tr.bottom + foot) - after);
+    if (Math.abs(delta) <= 1) return;
+    const next = Math.max(MIN_FILL, Math.round(this.el.getBoundingClientRect().height + delta));
+    if (next === Math.round(parseFloat(this.el.style.getPropertyValue('--dn-fill')) || 0)) return;
+    this.el.style.setProperty('--dn-fill', next + 'px');
+    if (pass < 3) window.requestAnimationFrame(() => this._settleFill(scroller, pass + 1));
+  }
+
+  /* The block as the note's flow sees it: walk out to whatever sits directly in the note's own
+   * content element. Anything above that is the editor, not the note. */
+  _blockTop() {
+    let n = this.el;
+    for (let i = 0; i < 12 && n.parentElement; i++) {
+      const c = n.parentElement.className || '';
+      if (/cm-content|markdown-preview-sizer/.test(c)) return n;
+      n = n.parentElement;
+    }
+    return this.el;
+  }
+
+  /* Whatever the note still puts after the calendar. The block may take the pane's height, but
+   * not at the cost of sitting on top of a paragraph written below it.
+   *
+   * CodeMirror parks scaffolding of its own around a block widget — zero-width buffer images,
+   * measuring stubs — and those are siblings too. They are not the note, so anything without
+   * real height is skipped; counting them made the calendar a few pixels short. */
+  _afterBlock(top) {
+    let after = 0;
+    for (let s = top.nextElementSibling; s; s = s.nextElementSibling) {
+      if (s.classList && s.classList.contains('cm-widgetBuffer')) continue;
+      const h = s.getBoundingClientRect().height;
+      if (h >= 2) after += h;
+    }
+    return after;
+  }
+
+  /* Is the calendar the last thing in the note? Asked of the note's own text rather than of the
+   * DOM: the editor's scaffolding sits in the element tree beside the block and is impossible to
+   * tell from content by looking at boxes. null when the answer isn't available — during a
+   * reflow the block's position in the file may be momentarily unknown — and the caller then
+   * falls back on measuring. */
+  _nothingFollows() {
+    try {
+      const info = this.ctx.getSectionInfo && this.ctx.getSectionInfo(this.el);
+      if (!info) return null;
+      const lines = String(info.text || '').split('\n');
+      for (let i = info.lineEnd + 1; i < lines.length; i++) if (lines[i].trim()) return false;
+      return true;
+    } catch (e) {
+      return null;
+    }
   }
 
   /* ---- top-level render ---- */
@@ -4501,11 +4593,18 @@ const STARTER_BLOCK = '```' + FENCE + '\n{\n  "events": []\n}\n```\n';
  * block runs to the end of the note — that's how the editor renders it too. */
 function calendarBlockRanges(doc) {
   const out = [];
-  let from = -1;
-  for (let n = 1; n <= doc.lines; n++) {
-    const line = doc.line(n);
-    if (from < 0) { if (DN_FENCE_OPEN.test(line.text)) from = line.from; }
-    else if (DN_FENCE_CLOSE.test(line.text)) { out.push([from, line.to]); from = -1; }
+  let from = -1, pos = 0;
+  // One walk over the text. doc.line(n) descends the document tree afresh for every line, and
+  // the caret guard calls this on every cursor move in every editor, calendar note or not.
+  const it = doc.iterLines();
+  for (;;) {
+    const step = it.next();
+    if (step.done) break;
+    const text = step.value;
+    const end = pos + text.length;
+    if (from < 0) { if (DN_FENCE_OPEN.test(text)) from = pos; }
+    else if (DN_FENCE_CLOSE.test(text)) { out.push([from, end]); from = -1; }
+    pos = end + 1; // and the newline between lines
   }
   if (from >= 0) out.push([from, doc.length]);
   return out;
@@ -4575,7 +4674,10 @@ class MdCalendarPlugin extends Plugin {
       mousedown: (evt, view) => {
         const target = evt.target;
         if (!(target instanceof HTMLElement)) return false;
-        if (target.closest('.md-calendar, .edit-block-button')) return false; // inside the calendar, or the way in
+        // The pencil is the deliberate way in — let it through, and let the caret guard below
+        // stand aside for the selection it is about to place inside the fence.
+        if (target.closest('.edit-block-button')) { this._caretPass = Date.now(); return false; }
+        if (target.closest('.md-calendar')) return false; // inside the calendar
         // No rendered block in this editor means Source mode, or a block already unfolded —
         // either way the note is being edited as text and the cursor belongs to the user.
         if (!view.dom.querySelector('.block-language-' + FENCE)) return false;
@@ -4585,6 +4687,40 @@ class MdCalendarPlugin extends Plugin {
         evt.preventDefault();
         return true;
       },
+    }));
+
+    // The other road into the raw JSON: the caret itself lands inside the fence — a cursor
+    // position restored when the note opens, an arrow key walking in from the line above, a jump
+    // out of search. Obsidian decides that from the selection and its decorations can't be
+    // overridden, so keep the caret out instead: a plain cursor landing inside a calendar is put
+    // down on the near side of it, in the direction it was travelling. A selection with a length
+    // — Ctrl+A, Shift+arrows — is left alone: that is someone handling the note as text, and
+    // hijacking it would break copying the note out.
+    this.registerEditorExtension(EditorState.transactionFilter.of((tr) => {
+      if (!tr.selection || tr.docChanged) return tr;
+      // Source mode shows the whole note as text on purpose: nothing is rendered there, so there
+      // is nothing to protect — and that is where editing the JSON by hand has to stay possible.
+      if (editorLivePreviewField && !tr.startState.field(editorLivePreviewField, false)) return tr;
+      if (Date.now() - (this._caretPass || 0) < 2000) return tr; // the block's edit pencil, just clicked
+      const sel = tr.newSelection.main;
+      if (!sel.empty) return tr;
+      const doc = tr.newDoc;
+      const hit = calendarBlockRanges(doc).find(([from, to]) => sel.head > from && sel.head < to);
+      if (!hit) return tr;
+      const [from, to] = hit;
+      // Already in there — the block is open for editing and someone is working inside it. Only
+      // an arrival from outside is turned back, so an edit session isn't interrupted halfway.
+      const prev = tr.startState.selection.main.head;
+      if (prev > from && prev < to) return tr;
+      // End of the line above the opening fence / start of the line below the closing one.
+      const before = from > 0 ? from - 1 : -1;
+      const after = to < doc.length ? to + 1 : -1;
+      // Arriving from below? Stop above the block. Otherwise — including a caret that came from
+      // nowhere, which is what a restored cursor looks like — pass below it.
+      const up = prev > to;
+      const target = up ? (before >= 0 ? before : after) : (after >= 0 ? after : before);
+      if (target < 0) return tr; // the block is the whole note: nowhere to stand
+      return [tr, { selection: { anchor: target } }];
     }));
 
     this.addCommand({ id: 'insert-calendar', name: t('insertCmd'), editorCallback: (editor) => editor.replaceSelection(STARTER_BLOCK) });

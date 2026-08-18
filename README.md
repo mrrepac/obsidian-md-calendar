@@ -25,6 +25,12 @@ time. You can also run **“Insert calendar”** or type the block yourself anyw
 Switch to Reading view or Live Preview and the block becomes the calendar. Every
 change you make in the UI is written straight back into the block.
 
+It stays the calendar, too. In Live Preview an editor normally unfolds a code block
+into its source as soon as the text cursor lands inside it — reopening a note with the
+cursor remembered there, or walking into it with an arrow key, would drop you into raw
+JSON. The cursor is kept out instead, so the calendar stays a calendar. The block's
+**edit** pencil and **Source mode** still open the JSON when you actually want it.
+
 ## The header
 
 - **‹ Today ›** — page back/forward by the current view's period, or jump to today.
@@ -177,7 +183,13 @@ wherever its content happens to stop. **Fill the pane** (on by default) lifts th
 for a note holding a calendar and gives the block the height left below it, so the month
 rows, the hour grid and the agenda's day panel grow with the window instead of with the
 text column. The height is measured, not assumed, and follows a window resize, a sidebar
-toggle or a split. Turn the setting off for the ordinary note layout.
+toggle or a split.
+
+The fit is exact: the block ends where the pane does, so the note itself has nothing
+left to scroll. When the calendar is the last thing in the note, its scrollbar goes as
+well. Write anything below the block and the scrollbar comes back — the calendar gives
+up exactly the height that text needs rather than covering it. Turn the setting off for
+the ordinary note layout.
 
 ## What's coming up
 

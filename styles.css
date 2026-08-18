@@ -732,7 +732,33 @@ body.dn-drag-active.dn-copy { cursor: copy; } /* Ctrl/Cmd held → drop leaves a
 .markdown-source-view.mod-cm6.is-readable-line-width .dn-bleed,
 .markdown-preview-view.is-readable-line-width .dn-bleed { max-width: none; }
 
-.md-calendar.is-full { display: flex; flex-direction: column; min-height: var(--dn-fill, 0px); }
+/* Nothing may hang below a calendar that already ends where the pane does. The culprit is the
+ * scrolling element itself: Obsidian gives it `padding: var(--file-margins)` — 32px all round —
+ * and the bottom third of that is enough to put a scrollbar next to a block that already reaches
+ * the bottom of the pane. Its own selector is four classes deep, so a shorter one loses the
+ * cascade and changes nothing; these repeat it and add `.dn-bleed`, which both wins outright and
+ * keeps the rule to notes actually showing a full-bleed calendar. Only the bottom is touched —
+ * the margin above the block is the note's normal breathing room. */
+.view-content > .markdown-source-view.mod-cm6 > .cm-editor > .cm-scroller.dn-bleed,
+.markdown-preview-view.dn-bleed { padding-bottom: 0; }
+
+/* And with the calendar the last thing in the note, take the scrollbar away too. The block is
+ * fitted to the pane, so what is left to scroll is a pixel or two of the editor's own chrome —
+ * a bar for that is pure noise. Set from _settleFill(), and only while nothing follows the
+ * calendar, so a note that does keep text below the block keeps its way down to it. Scrolling
+ * itself still works; only the bar goes. */
+.cm-scroller.dn-owns-pane,
+.markdown-preview-view.dn-owns-pane { overflow-y: hidden; scrollbar-width: none; }
+.cm-scroller.dn-owns-pane::-webkit-scrollbar,
+.markdown-preview-view.dn-owns-pane::-webkit-scrollbar { display: none; }
+
+/* height, not min-height: "at least" let the block outgrow the pane, and the note answered with
+ * a scrollbar. _fillHeight() measures --dn-fill so the block's margin box ends exactly at the
+ * inside bottom of the scroller. And overflow, because that height is exact: in a pane too short
+ * for the grid's own minimums the rows would spill out below the block instead. Clipping keeps
+ * "fits the window" literally true; the views that can run long — the hour grid, the agenda's
+ * day panel — scroll inside themselves. */
+.md-calendar.is-full { display: flex; flex-direction: column; height: var(--dn-fill, 0px); overflow: hidden; }
 .md-calendar.is-full .dn-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 /* month: the six week rows already share the space (flex: 1 1 0 each) — just give them some */
 .md-calendar.is-full .dn-month { flex: 1 1 auto; }
