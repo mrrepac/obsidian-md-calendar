@@ -779,6 +779,13 @@ body.dn-drag-active.dn-copy { cursor: copy; } /* Ctrl/Cmd held → drop leaves a
 
 /* ---- narrow / mobile ---- */
 @container (max-width: 560px) {
+  /* .dn-nav (prev/today/next) and .dn-views (the view switch) are separate flex children that
+     happen to sit next to each other in source order — pin only .dn-head-right (the icon
+     buttons: search, copy, edit, show/hide done, clear, archive) to its own full-width line, so
+     wrapping can't split it mid-group the way plain flex-wrap did, one or two icons at a time,
+     onto a THIRD row. Today+views end up sharing row one because there's nothing forcing them
+     apart, not because anything pins them together. */
+  .dn-head-right { flex: 1 1 100%; }
   /* Stacked agenda: let it be content-height again, or the mini calendar would take the
      vertical slack meant for the day list below it. */
   .md-calendar.is-full .dn-ag2 { flex: 0 0 auto; }
@@ -794,6 +801,18 @@ body.dn-drag-active.dn-copy { cursor: copy; } /* Ctrl/Cmd held → drop leaves a
   .dn-ag2-day { border-left: none; padding-left: 0; width: 100%; }
 }
 .is-mobile .dn-tg-scroll { max-height: none; }
+/* The exact fit above trades "the note can't grow past the pane" for "the calendar can't
+ * either" — fine on desktop, where a resize or a sidebar toggle lets _fillHeight() recover, but
+ * a phone has none of that slack, plus a keyboard, a browser chrome bar and a DPI rounding all
+ * eating into the same measurement. Give mobile the older, forgiving rule back: grow past the
+ * pane and let the note scroll, rather than risk clipping something the exact fit can't fix. */
+.is-mobile .md-calendar.is-full { height: auto; min-height: var(--dn-fill, 0px); overflow: visible; }
+/* …which means the note may genuinely have something left to scroll to on mobile, so the bar
+ * that goes with it stays — .cm-scroller/.markdown-preview-view keep their native scrollbar. */
+.is-mobile .cm-scroller.dn-owns-pane,
+.is-mobile .markdown-preview-view.dn-owns-pane { overflow-y: auto; scrollbar-width: auto; }
+.is-mobile .cm-scroller.dn-owns-pane::-webkit-scrollbar,
+.is-mobile .markdown-preview-view.dn-owns-pane::-webkit-scrollbar { display: block; }
 /* phone: the day-view all-day strip is one wide column — give tasks a readable,
  * comfortably tappable chip instead of the dense desktop one */
 .is-mobile .dn-tg-allday-cell .dn-chip { font-size: var(--font-ui-small); padding: 4px 8px 5px; gap: 7px; align-items: center; }

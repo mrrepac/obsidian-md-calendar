@@ -202,7 +202,11 @@ const STRINGS = {
     s_status: 'Next event in the status bar',
     s_statusDesc: 'The nearest upcoming item of the calendar note, at the bottom of the window — without opening the note. Desktop only.',
     s_full: 'Fill the pane',
-    s_fullDesc: 'A calendar is a grid, not prose: let the block use the whole width and height of the pane instead of the readable-line-width column. A note that holds a calendar goes full width with it.',
+    s_fullDesc: 'A calendar is a grid, not prose: let the block use the whole width and height of the pane instead of the readable-line-width column. Fits exactly on desktop; on mobile it can still grow past the pane and let the note scroll.',
+    s_fullScope_desktop: 'Desktop only',
+    s_fullScope_mobile: 'Mobile only',
+    s_fullScope_none: 'Nowhere',
+    s_fullScope_all: 'Everywhere',
   },
   ru: {
     untitled: 'Календарь',
@@ -356,7 +360,11 @@ const STRINGS = {
     s_status: 'Ближайшее событие в строке состояния',
     s_statusDesc: 'Ближайшая запись из заметки-календаря внизу окна — не открывая заметку. Только на десктопе.',
     s_full: 'Календарь во всё окно',
-    s_fullDesc: 'Календарь — сетка, а не текст: блок занимает всю ширину и высоту панели, а не колонку «читаемой длины строки». Заметка с календарём растягивается вместе с ним.',
+    s_fullDesc: 'Календарь — сетка, а не текст: блок занимает всю ширину и высоту панели, а не колонку «читаемой длины строки». На ПК подгоняется впритык; на мобильном может занять больше панели — тогда прокручивается сама заметка.',
+    s_fullScope_desktop: 'Только на ПК',
+    s_fullScope_mobile: 'Только на мобильном',
+    s_fullScope_none: 'Нигде',
+    s_fullScope_all: 'Везде',
   },
 };
 
@@ -427,6 +435,9 @@ const VIEW_CYCLE = ['month', 'week', 'day', 'agenda'];
 const MOBILE_VIEWS = ['agenda', 'day'];
 // Semantic color keys → theme CSS variables (never a raw hex). See styles.css.
 const COLOR_KEYS = ['default', 'red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+// Where fullWidthScope applies full-bleed: desktop's exact-fit-no-scrollbar and mobile's
+// grow-and-scroll are different enough trade-offs (see styles.css) to want separately.
+const FULL_WIDTH_SCOPES = ['desktop', 'mobile', 'none', 'all'];
 const DEFAULT_PLUGIN_SETTINGS = {
   firstView: 'month',
   firstViewMobile: 'agenda',
@@ -440,7 +451,7 @@ const DEFAULT_PLUGIN_SETTINGS = {
   completionSound: true,  // a short chime when something is ticked done
   monthChips: 4,          // events drawn in a month cell before "+N more" takes over
   statusBar: true,        // desktop: show the next upcoming item in Obsidian's status bar
-  fullWidth: true,        // the block fills the pane instead of the readable-text column
+  fullWidthScope: 'desktop', // 'desktop' | 'mobile' | 'none' | 'all' — where the block fills the pane
   // Per-block UI state — { "<notePath>::<calId>": { view, showCompleted } }. It lives HERE and
   // not in the note so that paging through views stops rewriting the user's Markdown file.
   viewMemory: {},
@@ -1426,7 +1437,7 @@ class CalendarRenderer {
    * the pane's remaining height as --dn-fill. */
   _applyFullBleed(tries) {
     if (this._destroyed) return;
-    const on = !!this.plugin.settings.fullWidth && !this.parseError;
+    const on = this.plugin.fullBleedOn() && !this.parseError;
     this._clearBleed();
     this.el.toggleClass('is-full', on);
     if (!on) { this.el.style.removeProperty('--dn-fill'); return; }
@@ -1669,14 +1680,17 @@ class CalendarRenderer {
     todayBtn.addEventListener('click', () => this.goToday());
     this.iconBtn(nav, 'chevron-right', t('next'), () => { v.anchor = navStep(v.view, moment(v.anchor, 'YYYY-MM-DD'), 1).format('YYYY-MM-DD'); this.render(); });
 
-    const right = head.createDiv({ cls: 'dn-head-right' });
-
-    const seg = right.createDiv({ cls: 'dn-views' });
+    // A sibling of .dn-nav, not nested inside .dn-head-right: on a narrow pane the two need to
+    // share the first wrapped row while the icon buttons below follow together on a row of
+    // their own — see the container query, which pins .dn-head-right to a fresh line and
+    // leaves this one free to sit next to .dn-nav.
+    const seg = head.createDiv({ cls: 'dn-views' });
     for (const view of (IS_MOBILE() ? MOBILE_VIEWS : VIEW_CYCLE)) {
       const b = seg.createEl('button', { cls: 'dn-seg-btn' + (v.view === view ? ' is-on' : ''), text: t('v_' + view) });
       b.addEventListener('click', () => this.setView(view));
     }
 
+    const right = head.createDiv({ cls: 'dn-head-right' });
     this.iconBtn(right, 'search', t('search'), () => this.openSearch());
     this.iconBtn(right, 'clipboard-copy', t('copyPeriod'), () => this.copyPeriod());
     this.iconBtn(right, 'pencil', t('calTitle'), () => this.openTitleEdit());
@@ -4556,11 +4570,15 @@ class MdCalendarSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName(t('s_full'))
       .setDesc(t('s_fullDesc'))
-      .addToggle((tg) => tg.setValue(!!this.plugin.settings.fullWidth).onChange(async (v) => {
-        this.plugin.settings.fullWidth = v;
-        await this.plugin.saveSettings();
-        this.plugin.refreshAll(); // layout, not data — the open calendars have to redraw
-      }));
+      .addDropdown((d) => {
+        for (const scope of FULL_WIDTH_SCOPES) d.addOption(scope, t('s_fullScope_' + scope));
+        const cur = FULL_WIDTH_SCOPES.includes(this.plugin.settings.fullWidthScope) ? this.plugin.settings.fullWidthScope : 'desktop';
+        d.setValue(cur).onChange(async (v) => {
+          this.plugin.settings.fullWidthScope = v;
+          await this.plugin.saveSettings();
+          this.plugin.refreshAll(); // layout, not data — the open calendars have to redraw
+        });
+      });
 
     // Desktop only — a phone has no status bar to put it in.
     if (!IS_MOBILE()) {
@@ -4631,6 +4649,11 @@ class MdCalendarPlugin extends Plugin {
     // keys (showTasksByDefault, defaultDurationMin, …) the code never reads; prune them so
     // saveData() stops rewriting cruft.
     const loaded = (await this.loadData()) || {};
+    // fullWidth (a plain on/off) became fullWidthScope (which platform) once desktop and mobile
+    // needed different defaults. Translate it once so upgrading doesn't silently change what a
+    // vault already had — true was applied on both platforms alike, so it becomes 'all', not
+    // the new 'desktop'-only default.
+    if ('fullWidth' in loaded && !('fullWidthScope' in loaded)) loaded.fullWidthScope = loaded.fullWidth ? 'all' : 'none';
     this.settings = Object.assign({}, DEFAULT_PLUGIN_SETTINGS);
     for (const k of Object.keys(DEFAULT_PLUGIN_SETTINGS)) { if (k in loaded) this.settings[k] = loaded[k]; }
     // Own the object rather than sharing the literal in DEFAULT_PLUGIN_SETTINGS.
@@ -4917,6 +4940,12 @@ class MdCalendarPlugin extends Plugin {
         if (!r._destroyed && r.model && r.ctx.sourcePath === path) { r.goToDate(iso); return; }
       }
     }, 250);
+  }
+
+  /* Whether full-bleed applies on the current platform, per the fullWidthScope setting. */
+  fullBleedOn() {
+    const scope = this.settings.fullWidthScope;
+    return scope === 'all' || (IS_MOBILE() ? scope === 'mobile' : scope === 'desktop');
   }
 
   /* Redraw every live calendar — for settings that change the layout rather than the data. */

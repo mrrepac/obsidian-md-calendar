@@ -179,17 +179,20 @@ audio files involved), and the two items below. Times are shown in 24-hour forma
 
 Obsidian's *readable line width* is right for a paragraph and wrong for a grid: it leaves
 the calendar in a narrow column with much of the pane empty on either side, ending
-wherever its content happens to stop. **Fill the pane** (on by default) lifts that clamp
-for a note holding a calendar and gives the block the height left below it, so the month
-rows, the hour grid and the agenda's day panel grow with the window instead of with the
-text column. The height is measured, not assumed, and follows a window resize, a sidebar
-toggle or a split.
+wherever its content happens to stop. **Fill the pane** lifts that clamp for a note
+holding a calendar and gives the block the height left below it, so the month rows, the
+hour grid and the agenda's day panel grow with the window instead of with the text
+column. The height is measured, not assumed, and follows a window resize, a sidebar
+toggle or a split. The setting chooses where this applies — desktop only (the default),
+mobile only, everywhere, or nowhere — since the two platforms fit differently.
 
-The fit is exact: the block ends where the pane does, so the note itself has nothing
-left to scroll. When the calendar is the last thing in the note, its scrollbar goes as
-well. Write anything below the block and the scrollbar comes back — the calendar gives
-up exactly the height that text needs rather than covering it. Turn the setting off for
-the ordinary note layout.
+On desktop the fit is exact: the block ends where the pane does, so the note itself has
+nothing left to scroll. When the calendar is the last thing in the note, its scrollbar
+goes as well. Write anything below the block and the scrollbar comes back — the calendar
+gives up exactly the height that text needs rather than covering it. On mobile, where a
+resize or a sidebar toggle can't recover space the way it can on desktop, the calendar
+takes the same measured height but is free to grow past it — the note scrolls instead of
+anything being clipped.
 
 ## What's coming up
 
