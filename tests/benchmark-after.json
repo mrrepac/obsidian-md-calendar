@@ -1,0 +1,83 @@
+{
+  "runtime": "v24.11.1",
+  "platform": "win32",
+  "samples": 25,
+  "workload": "Events across five years, 2% weekly recurrence; warmed production data paths only",
+  "results": [
+    {
+      "count": 100,
+      "sourceBytes": 10888,
+      "visibleInstances": 14,
+      "openData": {
+        "medianMs": 1.12,
+        "p95Ms": 1.24
+      },
+      "monthData": {
+        "medianMs": 0.13,
+        "p95Ms": 0.2
+      },
+      "searchAll": {
+        "medianMs": 0.07,
+        "p95Ms": 0.12
+      },
+      "searchFiltered": {
+        "medianMs": 0.02,
+        "p95Ms": 0.03
+      },
+      "editSnapshotAndSerialize": {
+        "medianMs": 0.04,
+        "p95Ms": 0.12
+      }
+    },
+    {
+      "count": 1000,
+      "sourceBytes": 110572,
+      "visibleInstances": 91,
+      "openData": {
+        "medianMs": 9.39,
+        "p95Ms": 10.16
+      },
+      "monthData": {
+        "medianMs": 0.56,
+        "p95Ms": 0.74
+      },
+      "searchAll": {
+        "medianMs": 0.69,
+        "p95Ms": 0.85
+      },
+      "searchFiltered": {
+        "medianMs": 0.16,
+        "p95Ms": 0.21
+      },
+      "editSnapshotAndSerialize": {
+        "medianMs": 0.57,
+        "p95Ms": 0.69
+      }
+    },
+    {
+      "count": 10000,
+      "sourceBytes": 1125412,
+      "visibleInstances": 894,
+      "openData": {
+        "medianMs": 95.72,
+        "p95Ms": 136.87
+      },
+      "monthData": {
+        "medianMs": 14.9,
+        "p95Ms": 408.97
+      },
+      "searchAll": {
+        "medianMs": 18.89,
+        "p95Ms": 19.96
+      },
+      "searchFiltered": {
+        "medianMs": 3.4,
+        "p95Ms": 3.95
+      },
+      "editSnapshotAndSerialize": {
+        "medianMs": 11.37,
+        "p95Ms": 14.05
+      }
+    }
+  ]
+}

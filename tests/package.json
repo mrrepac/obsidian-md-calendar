@@ -1,0 +1,6 @@
+{
+  "name": "md-calendar-dev-checks",
+  "private": true,
+  "scripts": { "test": "node --test time-grid.cjs", "bench": "node benchmark.cjs" },
+  "devDependencies": { "moment": "2.30.1" }
+}

@@ -31,6 +31,56 @@ cursor remembered there, or walking into it with an arrow key, would drop you in
 JSON. The cursor is kept out instead, so the calendar stays a calendar. The block's
 **edit** pencil and **Source mode** still open the JSON when you actually want it.
 
+## Per-calendar hours and zoom
+
+Click the **gear** in the calendar header to set start/end hours. Turn on **Use global hours** to inherit the plugin defaults again. Save applies
+the changes; Cancel discards them. Hour changes support the calendar undo command.
+
+You can also set the preferred hour range for week/day views inside a calendar block:
+
+````markdown
+```md-calendar
+{
+  "settings": {
+    "view": "week",
+    "showCompleted": true,
+    "dayStart": 0,
+    "dayEnd": 20
+  },
+  "events": []
+}
+```
+````
+
+`dayStart` accepts integer hours from 0 to 23; `dayEnd` from 1 to 24.
+Omitted or invalid values use the plugin's global settings. The effective end is
+always at least one hour after the start. As with the global range, the grid
+expands to include events outside these hours so no meeting is hidden.
+
+In week/day views, use **− / +** or **Ctrl + mouse wheel** over the time grid to
+zoom from **50% to 300%** in 25% steps. Click the percentage to reset to 100%.
+**Auto** (next to +) fits the entire displayed hour range into
+the current viewport, including hours added for outlying events. It can go below
+50% when needed; the mode is remembered and readjusts when the pane or hour range changes.
+The highlighted **Auto** button indicates automatic mode. Click it again to stop
+automatic fitting and keep the exact current scale. Use − / +, Ctrl + wheel,
+or the percentage reset to return to the regular manual zoom steps.
+Wheel zoom keeps the time under the pointer in place where scroll limits allow;
+the buttons keep the middle of the viewport in place. Short event blocks prioritize
+the title and hide details that no longer fit; very small blocks remain colored
+markers. Hover or open an event to read its full time, title, and description. Zoom is remembered per
+calendar block in the plugin's local settings, shared between week/day views,
+and does not rewrite the Markdown note or change event times.
+
+## Entering times
+
+When entering an event's time, `1:05` means `01:05`; compact forms such as `1530`
+and ranges such as `15-18` also work. Invalid times or incomplete ranges show an
+inline hint and keep your input for correction. Overnight ranges such as
+`23:00–02:00` are supported; equal start and end times are rejected.
+The placement time draft survives a calendar redraw or cancelling and restarting
+placement with the same title during the current session.
+
 ## The header
 
 - **‹ Today ›** — page back/forward by the current view's period, or jump to today.
@@ -39,14 +89,14 @@ JSON. The cursor is kept out instead, so the calendar stays a calendar. The bloc
 - **Search** (🔍) — find an event by title or description anywhere in the calendar,
   upcoming first. **Enter** jumps to its date, **Ctrl/Cmd+Enter** opens it. **F** on the
   grid, or the *Find an event* command.
-- **Copy the period as text** — puts what you are looking at into the clipboard as a
+- **⋯ → Copy the period as text** — puts what you are looking at into the clipboard as a
   plain Markdown list: a heading, a block per day, times, task checkboxes and
   descriptions. Month and agenda copy the **month itself**, not the padding days of the
   grid; a multi-day event is written once with its date range; hidden completed items
   stay hidden. **C** on the grid, or the *Copy the visible period as text* command.
-- **Calendar name** (pencil) — the optional heading above the controls. Empty hides it.
-- **Completed toggle** — show or hide done events. The **trash button** next to it
-  deletes every completed item, and the **archive button** clears out the past — see
+- **⋯ → Calendar name** — the optional heading above the controls. Empty hides it.
+- **Completed toggle** — show or hide done events. The **⋯** menu
+  offers actions to delete completed items and clear out the past — see
   *Keeping the note small* below.
 - **Records without a date** — a record whose date is missing or unreadable is never
   dropped: an orange strip appears, and **Sort out** lets you give each one a date or
@@ -57,7 +107,13 @@ JSON. The cursor is kept out instead, so the calendar stays a calendar. The bloc
   arrows + Enter/Space. Clicking an hour slot sets the time right away; otherwise a quick
   time prompt follows — leave it empty for an all-day event. Start the line with `- `
   (or press **Ctrl/Cmd+Enter**) to add a **task** instead — it lands on the picked day
-  with no time step. **Esc** or the banner's **✕** cancels.
+  with no time step. **Esc** or the banner's **✕** cancels and returns your original text to the add bar.
+
+You can also enter **`15:00–16:00 Meeting`** or **`9:00 Breakfast`** in the add bar.
+A preview shows the recognized time and title before you press Enter; then choose
+the day to create the event. The typed time takes priority even if you click an hour
+slot. Only an explicit `HH:MM` prefix is recognized. Ordinary numbers, dates, and
+invalid ranges stay in the title; task input is kept verbatim without time parsing.
 
 ## Events and tasks
 
@@ -143,6 +199,10 @@ On a phone the switcher offers just **Agenda and Day** — agenda by default (it
 mini calendar is the month overview). The view saved in the note by your desktop is
 left untouched: the phone only narrows what it shows, per session.
 
+In week/day views, editing or completing an item preserves your position on the
+time axis. Changing the date or keyboard hour selection uses the usual navigation;
+**Today** returns to the current time.
+
 Every view is **keyboard-navigable** — the arrow keys or **WASD** move the selection
 (physical keys, so they work in any layout). In month and agenda, left/right is ±1 day
 and up/down ±1 week. In week and day the selection is two-dimensional: it starts on
@@ -207,8 +267,8 @@ upcoming means no item at all. Turn it off in settings.
 ## Keeping the note small
 
 A calendar that lives in one note keeps everything you ever put in it, and years of
-finished appointments are dead weight in a file you sync. **Delete the past** (the archive
-button, or the *Delete past records* command) clears out what is over: pick a cut-off —
+finished appointments are dead weight in a file you sync. **Delete the past** (the cleanup
+action in **⋯**, or the *Delete past records* command) clears out what is over: pick a cut-off —
 today, a month back, three months, a year, or a date of your own — and it tells you
 exactly how much would go before you commit. One **Ctrl+Z** brings the whole sweep back.
 

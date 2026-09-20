@@ -53,16 +53,28 @@ const STRINGS = {
   en: {
     untitled: 'Calendar',
     addPlaceholder: 'New event or task…',
-    addHint: 'Type a title and press Enter, then pick the day right in the calendar — click it, or arrows + Enter. Ctrl/Cmd+Enter (or a leading “- ”) adds it as a task (no time).',
+    addHint: 'Type a title (optionally beginning with 15:00–16:00) and press Enter, then pick the day right in the calendar — click it, or arrows + Enter. Ctrl/Cmd+Enter (or a leading “- ”) adds it as a task (no time).',
     today: 'Today',
     prev: 'Previous',
     next: 'Next',
     timePlaceholder: 'time — e.g. 1530, or 15-18 for a range',
+    invalidTime: 'Enter a valid time, e.g. 09:30 or 09:30–10:30. Start and end must differ.',
     v_month: 'Month',
     v_week: 'Week',
     v_day: 'Day',
     v_agenda: 'Agenda',
     showCompleted: 'Show completed',
+    zoomIn: 'Zoom in',
+    zoomOut: 'Zoom out',
+    zoomReset: 'Reset zoom',
+    fitDay: 'Fit day automatically',
+    zoomAuto: 'Auto',
+    moreActions: 'More actions',
+    parsedTime: 'Time: {0} · {1}',
+    calendarSettings: 'Calendar settings',
+    inheritHours: 'Use global hours',
+    hoursHint: 'Week and day views. The range expands to include events outside these hours.',
+    invalidHours: 'The end must be later than the start.',
     hideCompleted: 'Hide completed',
     clearDone: 'Delete completed',
     clearedDone: 'Deleted {0} completed item(s) — Ctrl+Z brings them back.',
@@ -211,16 +223,28 @@ const STRINGS = {
   ru: {
     untitled: 'Календарь',
     addPlaceholder: 'Новое событие или задача…',
-    addHint: 'Введите название и нажмите Enter, затем выберите день прямо в календаре — кликом или стрелками + Enter. Ctrl/Cmd+Enter (или «- » в начале) — задача (без времени).',
+    addHint: 'Введите название (можно начать с 15:00–16:00) и нажмите Enter, затем выберите день прямо в календаре — кликом или стрелками + Enter. Ctrl/Cmd+Enter (или «- » в начале) — задача (без времени).',
     today: 'Сегодня',
     prev: 'Назад',
     next: 'Вперёд',
     timePlaceholder: 'время — напр. 1530 или 15-18 для диапазона',
+    invalidTime: 'Введите время, например 09:30 или 09:30–10:30. Начало и конец должны различаться.',
     v_month: 'Месяц',
     v_week: 'Неделя',
     v_day: 'День',
     v_agenda: 'Повестка',
     showCompleted: 'Показывать выполненные',
+    zoomIn: 'Увеличить масштаб',
+    zoomOut: 'Уменьшить масштаб',
+    zoomReset: 'Сбросить масштаб',
+    fitDay: 'Вписывать день автоматически',
+    zoomAuto: 'Авто',
+    moreActions: 'Другие действия',
+    parsedTime: 'Время: {0} · {1}',
+    calendarSettings: 'Настройки календаря',
+    inheritHours: 'Использовать общие настройки часов',
+    hoursHint: 'Для недели и дня. Диапазон расширяется, если за его пределами есть события.',
+    invalidHours: 'Конец дня должен быть позже начала.',
     hideCompleted: 'Скрыть выполненные',
     clearDone: 'Удалить выполненные',
     clearedDone: 'Удалено выполненных: {0} — Ctrl+Z вернёт.',
@@ -452,7 +476,7 @@ const DEFAULT_PLUGIN_SETTINGS = {
   monthChips: 4,          // events drawn in a month cell before "+N more" takes over
   statusBar: true,        // desktop: show the next upcoming item in Obsidian's status bar
   fullWidthScope: 'desktop', // 'desktop' | 'mobile' | 'none' | 'all' — where the block fills the pane
-  // Per-block UI state — { "<notePath>::<calId>": { view, showCompleted } }. It lives HERE and
+  // Per-block UI state — { "<notePath>::<calId>": { view, showCompleted, zoom } }. It lives HERE and
   // not in the note so that paging through views stops rewriting the user's Markdown file.
   viewMemory: {},
 };
@@ -509,8 +533,10 @@ function normTime(v) {
 
 /* Parse a compact/loose time entry into "HH:mm", or null if empty/invalid. */
 function parseCompactTime(s) {
-  const d = String(s == null ? '' : s).replace(/\D/g, '');
-  if (!d) return null;
+  const text = String(s == null ? '' : s).trim();
+  if (/^\d{1,2}:\d{2}$/.test(text)) return normTime(text);
+  if (!/^\d{1,4}$/.test(text)) return null;
+  const d = text;
   let hh, mm;
   if (d.length <= 2) { hh = Number(d); mm = 0; }
   else if (d.length === 3) {
@@ -525,18 +551,52 @@ function parseCompactTime(s) {
  * "15-18" → {start:'15:00', end:'18:00'}, "1500-1800" and "9:00-10:30" likewise. A lone time —
  * "1518", "15:18", "15" — is a start only (":" and bare digits never mean a range): {start,end:null}.
  * null if the start doesn't parse. An end EARLIER than the start is kept — "23-02" is the night
- * train, an event that runs past midnight; only an end equal to the start is meaningless and
- * dropped (normalizeEvent would rewrite it to start+duration anyway). */
+ * train, an event that runs past midnight. Invalid or equal endpoints are rejected. */
 function parseTimeRange(s) {
   const str = String(s == null ? '' : s).trim();
   const parts = str.split(/\s*[-–—]\s*/);
-  if (parts.length === 2 && parts[0] && parts[1]) {
+  if (parts.length === 2) {
     const start = parseCompactTime(parts[0]);
     const end = parseCompactTime(parts[1]);
-    if (start) return { start, end: (end && timeToMin(end) !== timeToMin(start)) ? end : null };
+    return start && end && start !== end ? { start, end } : null;
   }
+  if (parts.length !== 1) return null;
   const start = parseCompactTime(str);
   return start ? { start, end: null } : null;
+}
+
+// Inline feedback is shared by placement and the quick-create dialog.
+function timeInputValidator(input, parent) {
+  const id = uid('dn-time-error-');
+  const error = parent.createDiv({ cls: 'dn-time-error dn-hide', attr: { id, role: 'alert' } });
+  input.setAttribute('aria-describedby', id);
+  const clear = () => { error.setText(''); error.addClass('dn-hide'); input.removeAttribute('aria-invalid'); };
+  input.addEventListener('input', clear);
+  return () => {
+    const value = input.value.trim();
+    const parsed = value ? parseTimeRange(value) : { start: null, end: null };
+    if (parsed) clear();
+    else { error.setText(t('invalidTime')); error.removeClass('dn-hide'); input.setAttribute('aria-invalid', 'true'); }
+    return parsed;
+  };
+}
+
+// Only explicit HH:MM prefixes are recognized: numbers and dates remain titles.
+function parseAddTitle(text, task = false) {
+  const raw = String(text || '').trim();
+  const plain = { title: raw, start: null, end: null };
+  if (task) return plain;
+  const match = raw.match(/^(\d{1,2}:\d{2})(?:\s*[-–—]\s*(\d{1,2}:\d{2}))?\s+(.+)$/);
+  if (!match) return plain;
+  const start = parseCompactTime(match[1]);
+  const end = match[2] ? parseCompactTime(match[2]) : null;
+  if (!start || (match[2] && (!end || end === start))) return plain;
+  return { title: match[3].trim(), start, end };
+}
+
+function timeScrollOffset(snapshot, context, start, end, height) {
+  if (!snapshot || snapshot.context !== context || !Number.isFinite(snapshot.minute)) return null;
+  return Math.max(0, (snapshot.minute - start) / Math.max(1, end - start) * height);
 }
 
 const DAY_MIN = 24 * 60;
@@ -735,6 +795,21 @@ function normalizeEvent(raw, i) {
   };
 }
 
+function configuredHours(settings, defaults) {
+  const valid = (value, min, max) => Number.isInteger(value) && value >= min && value <= max;
+  const dayStart = valid(settings.dayStart, 0, 23) ? settings.dayStart
+    : valid(defaults.dayStart, 0, 23) ? defaults.dayStart : 7;
+  const end = valid(settings.dayEnd, 1, 24) ? settings.dayEnd
+    : valid(defaults.dayEnd, 1, 24) ? defaults.dayEnd : 22;
+  return { dayStart, dayEnd: Math.max(dayStart + 1, end) };
+}
+
+function normalizeZoom(value, fitted = false) {
+  if (!Number.isFinite(value)) return 1;
+  return fitted ? Math.max(0.01, Math.min(3, value))
+    : Math.max(0.5, Math.min(3, Math.round(value * 4) / 4));
+}
+
 function normalizeCal(parsed, defaults) {
   const m = parsed && typeof parsed === 'object' ? parsed : {};
   // Effective default view is resolved per-device here (not by mutating the persisted
@@ -748,6 +823,11 @@ function normalizeCal(parsed, defaults) {
     showCompleted: rawSettings.showCompleted !== false,
   };
   if (!VIEW_CYCLE.includes(settings.view)) settings.view = 'month';
+  for (const [key, min, max] of [['dayStart', 0, 23], ['dayEnd', 1, 24]]) {
+    if (Number.isInteger(rawSettings[key]) && rawSettings[key] >= min && rawSettings[key] <= max) {
+      settings[key] = rawSettings[key];
+    }
+  }
 
   const rawEvents = Array.isArray(m.events) ? m.events
     : Array.isArray(m.tasks) ? m.tasks : []; // accept a pasted tasknote board
@@ -870,8 +950,8 @@ function expandInstances(ev, fromIso, toIso, limit) {
     // An undone task from the past carries forward: it renders on TODAY, flagged overdue
     // (drawn red), instead of silently sinking into history. Events keep their date — only
     // tasks roll. Ticking it done pins its date to today (see toggleDone).
-    const today = isoToday();
-    if (ev.task && !ev.done && ev.date < today) {
+    const today = ev.task && !ev.done ? isoToday() : null;
+    if (today && ev.date < today) {
       if (today >= fromIso && today <= toIso) {
         const inst = instance(ev, today);
         inst.overdue = true;
@@ -1195,6 +1275,9 @@ class CalendarRenderer {
     if (!v.seeded) {
       v.seeded = true;
       const mem = this.plugin.recallViewState(this.stateKey());
+      // Keep an exact fitted scale when Auto was switched off at that scale.
+      v.zoom = normalizeZoom(mem.zoom, true);
+      v.zoomFit = mem.zoomFit === true;
       if (!v.view) v.view = mem.view || this.model.settings.view || 'month';
       v.showCompleted = (typeof mem.showCompleted === 'boolean')
         ? mem.showCompleted
@@ -1208,6 +1291,83 @@ class CalendarRenderer {
   }
 
   showCompleted() { return this.view().showCompleted !== false; }
+
+  setZoom(value, clientY, fitted = false) {
+    if (this._activeDrags.size) return; // keep an in-flight gesture's geometry stable
+    const v = this.view();
+    const zoom = normalizeZoom(value, fitted);
+    if ((zoom === v.zoom || (fitted && Math.abs(zoom - v.zoom) < 0.0001)) && fitted === !!v.zoomFit) return;
+    const scroll = this.el.querySelector('.dn-tg-scroll');
+    const inner = this.el.querySelector('.dn-tg-inner');
+    if (!scroll || !inner) return;
+    const offset = Number.isFinite(clientY)
+      ? Math.max(0, Math.min(scroll.clientHeight, clientY - scroll.getBoundingClientRect().top))
+      : scroll.clientHeight / 2;
+    const fraction = (scroll.scrollTop + offset) / Math.max(1, inner.clientHeight);
+    v.zoom = zoom;
+    v.zoomFit = fitted;
+    inner.style.setProperty('--dn-time-zoom', String(zoom));
+    scroll.scrollTop = Math.max(0, fraction * inner.clientHeight - offset);
+    this.plugin.rememberViewState(this.stateKey(), { zoom, zoomFit: fitted });
+    this.updateZoomControls();
+  }
+
+  fitDay() {
+    if (this._activeDrags.size) return;
+    const scroll = this.el.querySelector('.dn-tg-scroll');
+    const inner = this.el.querySelector('.dn-tg-inner');
+    if (!scroll || !inner || !inner.clientHeight || !scroll.clientHeight) return;
+    // Use the measured grid, including hours added to accommodate outlying events.
+    // Leave a pixel for browser rounding; fit may go below the manual 50% minimum.
+    const win = scroll.ownerDocument.defaultView;
+    const style = win.getComputedStyle(scroll);
+    const maxHeight = parseFloat(style.maxHeight);
+    const screenSpace = Math.max(1, win.innerHeight - Math.max(0, scroll.getBoundingClientRect().top) - 16);
+    // Unconstrained/mobile grids derive their height from content: measuring that height
+    // after each fit would shrink it repeatedly. Use the viewport budget instead.
+    const constrained = parseFloat(style.flexGrow) > 0 && !IS_MOBILE();
+    const available = Number.isFinite(maxHeight) ? maxHeight : constrained ? scroll.clientHeight : screenSpace;
+    const height = Math.max(1, Math.min(available, screenSpace) - 1);
+    this.setZoom(this.view().zoom * height / inner.clientHeight, undefined, true);
+    scroll.scrollTop = 0;
+  }
+
+  toggleAutoZoom() {
+    if (this._activeDrags.size) return;
+    const v = this.view();
+    if (!v.zoomFit) { this.fitDay(); return; }
+    // Turning Auto off freezes the current scale, including values below 50%.
+    v.zoomFit = false;
+    this.plugin.rememberViewState(this.stateKey(), { zoom: v.zoom, zoomFit: false });
+    this.updateZoomControls();
+  }
+
+  updateZoomControls() {
+    const zoom = this.view().zoom;
+    const fit = this.el.querySelector('.dn-zoom-fit');
+    if (fit) fit.setAttribute('aria-pressed', String(!!this.view().zoomFit));
+    const label = this.el.querySelector('.dn-zoom-reset');
+    if (label) label.textContent = Math.round(zoom * 100) + '%';
+    for (const [cls, disabled] of [['.dn-zoom-out', zoom <= 0.5], ['.dn-zoom-in', zoom >= 3]]) {
+      const button = this.el.querySelector(cls);
+      if (button) button.disabled = disabled;
+    }
+  }
+
+  buildZoomControls(parent) {
+    const controls = parent.createDiv({ cls: 'dn-zoom' });
+    const button = (cls, text, label, action) => {
+      const el = controls.createEl('button', { cls, text, attr: { type: 'button', 'aria-label': label } });
+      el.addEventListener('click', action);
+      return el;
+    };
+    const zoom = this.view().zoom;
+    button('dn-zoom-out', '−', t('zoomOut'), () => this.setZoom(this.view().zoom - 0.25)).disabled = zoom <= 0.5;
+    button('dn-zoom-reset', Math.round(zoom * 100) + '%', t('zoomReset'), () => this.setZoom(1));
+    button('dn-zoom-in', '+', t('zoomIn'), () => this.setZoom(this.view().zoom + 0.25)).disabled = zoom >= 3;
+    const fit = button('dn-zoom-fit', t('zoomAuto'), t('fitDay'), () => this.toggleAutoZoom());
+    fit.setAttribute('aria-pressed', String(!!this.view().zoomFit));
+  }
 
   setView(next) {
     const v = this.view();
@@ -1233,6 +1393,8 @@ class CalendarRenderer {
   }
 
   destroy() {
+    if (this._saveTimeScroll) this._saveTimeScroll();
+    if (this._timeGridCleanup) this._timeGridCleanup();
     this._destroyed = true; // stops _armPersist() re-arming a dead timer during the flush below
     if (this._persistTimer) clearTimeout(this._persistTimer);
     if (this._dirty) this.persist().catch((e) => console.error('MD Calendar: flush on teardown failed', e));
@@ -1576,6 +1738,8 @@ class CalendarRenderer {
 
   /* ---- top-level render ---- */
   render() {
+    if (this._saveTimeScroll) this._saveTimeScroll();
+    if (this._timeGridCleanup) this._timeGridCleanup();
     this._applyFullBleed();
     if (this.parseError) return this.renderError();
     // Tear down any in-flight drag / placement-key listener first: el.empty() below detaches
@@ -1691,14 +1855,22 @@ class CalendarRenderer {
     }
 
     const right = head.createDiv({ cls: 'dn-head-right' });
+    if (v.view === 'week' || v.view === 'day') this.buildZoomControls(right);
+    this.iconBtn(right, 'settings', t('calendarSettings'), () => new CalendarSettingsModal(this.app, this).open());
     this.iconBtn(right, 'search', t('search'), () => this.openSearch());
-    this.iconBtn(right, 'clipboard-copy', t('copyPeriod'), () => this.copyPeriod());
-    this.iconBtn(right, 'pencil', t('calTitle'), () => this.openTitleEdit());
     const showDone = this.showCompleted();
     this.iconBtn(right, showDone ? 'eye' : 'eye-off', showDone ? t('hideCompleted') : t('showCompleted'),
       () => this.setShowCompleted(!showDone), showDone);
-    this.iconBtn(right, 'trash-2', t('clearDone'), () => this.clearDone());
-    this.iconBtn(right, 'archive', t('purge'), () => this.openPurge());
+    const more = this.iconBtn(right, 'ellipsis', t('moreActions'), () => {
+      const menu = new Menu();
+      menu.addItem((item) => item.setTitle(t('copyPeriod')).setIcon('clipboard-copy').onClick(() => this.copyPeriod()));
+      menu.addItem((item) => item.setTitle(t('calTitle')).setIcon('pencil').onClick(() => this.openTitleEdit()));
+      menu.addSeparator();
+      menu.addItem((item) => item.setTitle(t('clearDone')).setIcon('trash-2').onClick(() => this.clearDone()));
+      menu.addItem((item) => item.setTitle(t('purge')).setIcon('archive').onClick(() => this.openPurge()));
+      const rect = more.getBoundingClientRect();
+      menu.showAtPosition({ x: rect.left, y: rect.bottom });
+    });
 
     this.buildAddBar(head);
 
@@ -1750,12 +1922,21 @@ class CalendarRenderer {
       cls: 'dn-add-input',
       attr: { type: 'text', placeholder: t('addPlaceholder'), value: v.addDraft || '' },
     });
-    this.addInput.addEventListener('input', () => { v.addDraft = this.addInput.value; });
-    this.addInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && v.pending) { e.preventDefault(); v.pending = null; this.render(); return; }
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
+    const preview = wrap.createDiv({ cls: 'dn-add-preview', attr: { 'aria-live': 'polite' } });
+    const updatePreview = () => {
       const text = this.addInput.value.trim();
+      const parsed = parseAddTitle(text, /^(?:[-*]|\[[ xX]?\])\s+/.test(text));
+      preview.setText(parsed.start ? t('parsedTime', parsed.start + (parsed.end ? '–' + parsed.end : ''), parsed.title) : '');
+      preview.toggleClass('dn-hide', !parsed.start);
+    };
+    updatePreview();
+    this.addInput.addEventListener('input', () => { v.addDraft = this.addInput.value; updatePreview(); });
+    this.addInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && v.pending) { e.preventDefault(); e.stopPropagation(); this.cancelPlace(); return; }
+      if (e.key !== 'Enter' || e.isComposing) return;
+      e.preventDefault();
+      const sourceText = this.addInput.value;
+      const text = sourceText.trim();
       if (!text) { this.addInput.value = ''; v.addDraft = ''; return; }
       v.addDraft = '';
       this.addInput.value = '';
@@ -1763,11 +1944,11 @@ class CalendarRenderer {
       const taskMark = text.match(/^(?:[-*]|\[[ xX]?\])\s+/);
       const isTask = !!taskMark || e.ctrlKey || e.metaKey;
       const body = taskMark ? text.slice(taskMark[0].length) : text;
-      // The text is the TITLE, verbatim — no date/time parsing magic (it guessed wrong more
-      // than it helped). One predictable flow: placement mode — pick the day in the calendar
-      // (click or arrows + Enter), then the time. Held as view state; nothing written until placed.
+      const parsed = parseAddTitle(body, isTask);
       const seed = v.anchor || isoToday();
-      v.pending = { title: body, start: null, repeat: null, cursor: seed, dom: moment(seed, 'YYYY-MM-DD').date(), timing: false, task: isTask };
+      v.pending = { sourceText, timeDraft: v.cancelledPlace && v.cancelledPlace.sourceText === sourceText ? v.cancelledPlace.timeDraft : undefined, title: parsed.title, start: parsed.start, end: parsed.end, explicitTime: !!parsed.start,
+        repeat: null, cursor: seed, dom: moment(seed, 'YYYY-MM-DD').date(), timing: false, task: isTask };
+      v.cancelledPlace = null;
       this.render();
     });
     const hint = row.createSpan({ cls: 'dn-add-help', attr: { 'aria-label': t('addHint'), role: 'button', tabindex: '0' } });
@@ -1787,25 +1968,27 @@ class CalendarRenderer {
       const place = wrap.createDiv({ cls: 'dn-place' });
       if (!p.timing) {
         setIcon(place.createSpan({ cls: 'dn-place-ic' }), 'mouse-pointer-click');
-        place.createSpan({ cls: 'dn-place-text', text: t('placeHint', p.title || '…') });
+        place.createSpan({ cls: 'dn-place-text', text: t('placeHint', (p.explicitTime ? p.start + (p.end ? '–' + p.end : '') + ' · ' : '') + (p.title || '…')) });
       } else {
         setIcon(place.createSpan({ cls: 'dn-place-ic' }), 'clock');
         place.createSpan({ cls: 'dn-place-text', text: t('placeTimeHint', cap(moment(p.cursor, 'YYYY-MM-DD').format('D MMM'))) });
-        const timeInput = place.createEl('input', { cls: 'dn-in dn-place-time', attr: { type: 'text', inputmode: 'numeric', placeholder: t('timePlaceholder'), value: p.start || '' } });
+        const timeInput = place.createEl('input', { cls: 'dn-in dn-place-time', attr: { type: 'text', inputmode: 'numeric', placeholder: t('timePlaceholder'), value: p.timeDraft ?? p.start ?? '' } });
+        timeInput.addEventListener('input', () => { p.timeDraft = timeInput.value; });
+        const validateTime = timeInputValidator(timeInput, place);
         setTimeout(() => { timeInput.focus(); const L = timeInput.value.length; timeInput.setSelectionRange(L, L); }, 0);
         timeInput.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
-            const val = timeInput.value.trim();
-            if (val && !parseTimeRange(val)) return; // invalid — let them fix it
-            const r = val ? parseTimeRange(val) : null; // "15-18" → start + end; empty = all-day
-            this.commitPlace(r ? r.start : null, r ? r.end : null);
-          } else if (e.key === 'Escape') { e.preventDefault(); p.timing = false; this.render(); } // back to day nav
+            if (e.isComposing) return;
+            const r = validateTime();
+            if (!r) return;
+            this.commitPlace(r.start, r.end);
+          } else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.cancelPlace(); }
         });
       }
       const x = place.createSpan({ cls: 'dn-place-x', attr: { role: 'button', 'aria-label': t('placeCancel'), tabindex: '0' } });
       setIcon(x, 'x');
-      const cancel = () => { this.view().pending = null; this.render(); };
+      const cancel = () => this.cancelPlace();
       x.addEventListener('click', cancel);
       x.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cancel(); } });
     }
@@ -1820,6 +2003,7 @@ class CalendarRenderer {
     if (!p) return false;
     p.cursor = dateIso;
     if (p.task) { this.commitPlace(null); return true; } // a task has no time — drop it on the day
+    if (p.explicitTime) { this.commitPlace(p.start, p.end); return true; }
     if (startOverride) { this.commitPlace(startOverride); return true; } // hour slot → time is known
     p.timing = true; // month/all-day/agenda click → ask for the time next
     this.render();
@@ -1855,8 +2039,23 @@ class CalendarRenderer {
     if (!v.pending) return;
     if (!v.pending.cursor) v.pending.cursor = v.anchor || isoToday();
     if (v.pending.task) { this.commitPlace(null); return; } // task: no time step, add on the chosen day
-    if (seedDigit) v.pending.start = seedDigit; // typed a digit on the grid → seed the time box
+    if (v.pending.explicitTime && !seedDigit) { this.commitPlace(v.pending.start, v.pending.end); return; }
+    if (seedDigit) { v.pending.explicitTime = false; v.pending.start = seedDigit; v.pending.timeDraft = seedDigit; } // typed a digit on the grid → seed the time box
     v.pending.timing = true;
+    this.render();
+  }
+
+  cancelPlace(focus = true) {
+    const v = this.view();
+    const pending = v.pending;
+    if (!pending) return;
+    // Preserve a newer draft if the user already started typing another title.
+    if (!v.addDraft) {
+      v.addDraft = pending.sourceText ?? pending.title ?? '';
+      v.cancelledPlace = { sourceText: v.addDraft, timeDraft: pending.timeDraft };
+    }
+    v.pending = null;
+    v.focusAddUntil = focus ? Date.now() + 600 : 0;
     this.render();
   }
 
@@ -1865,6 +2064,7 @@ class CalendarRenderer {
     const p = v.pending;
     if (!p) return;
     v.pending = null;
+    v.cancelledPlace = null;
     v.focusAddUntil = Date.now() + 600;
     this.addEvent({ title: p.title, date: p.cursor || v.anchor || isoToday(), start: p.task ? null : (start || null), end: p.task ? null : (end || null), repeat: p.repeat, task: p.task });
   }
@@ -1878,7 +2078,7 @@ class CalendarRenderer {
       prev._placeCleanup();
       // The losing calendar keeps its placement banner but no longer owns the keyboard; clear its
       // pending state so it visibly exits placement mode instead of looking interactive but dead.
-      try { const pv = prev.view(); if (pv.pending) { pv.pending = null; prev.render(); } } catch (e) { /* prev gone */ }
+      try { if (prev.view().pending) prev.cancelPlace(false); } catch (e) { /* prev gone */ }
     }
     this.plugin.activePlacement = this;
     const onKey = (e) => {
@@ -1900,7 +2100,7 @@ class CalendarRenderer {
           if (ae === this.addInput && this.addInput && this.addInput.value) return;
           handle(() => this.pickPlaceDay());
           break;
-        case 'Escape': handle(() => { this.view().pending = null; this.render(); }); break;
+        case 'Escape': handle(() => this.cancelPlace()); break;
         default:
           if (/^[0-9]$/.test(e.key)) handle(() => this.pickPlaceDay(e.key));
           break;
@@ -2101,9 +2301,7 @@ class CalendarRenderer {
   hourWindow() {
     const g = this._timeGridInfo;
     if (g) return { dayStartMin: g.dayStartMin, dayEndMin: g.dayEndMin };
-    const s = this.plugin.settings;
-    const dayStart = Math.max(0, Math.min(23, s.dayStart));
-    const dayEnd = Math.max(dayStart + 1, Math.min(24, s.dayEnd));
+    const { dayStart, dayEnd } = configuredHours(this.model.settings, this.plugin.settings);
     return { dayStartMin: dayStart * 60, dayEndMin: dayEnd * 60 };
   }
 
@@ -2154,6 +2352,7 @@ class CalendarRenderer {
    * defaults — day-of-month paging memory cleared, the week/day slot cursor back on the
    * all-day band — and the grid takes focus so the keys work immediately. */
   goToday() {
+    this._forceTimeScroll = true;
     const v = this.view();
     v.anchor = isoToday();
     v.selDom = null;
@@ -2167,6 +2366,7 @@ class CalendarRenderer {
    * a date months away doesn't mean clicking ‹ › a dozen times. Mirrors goToday's state reset. */
   goToDate(iso) {
     if (!iso) return;
+    this._forceTimeScroll = true;
     const v = this.view();
     v.anchor = iso;
     v.selDom = moment(iso, 'YYYY-MM-DD').date();
@@ -2658,8 +2858,7 @@ class CalendarRenderer {
     // outside it was squeezed into a sliver against the edge while its label still read 06:00 —
     // several events could pile up there invisibly. Grow the window to cover whatever the visible
     // days actually hold; on days that fit, it stays exactly as configured.
-    let dayStart = Math.max(0, Math.min(23, s.dayStart));
-    let dayEnd = Math.max(dayStart + 1, Math.min(24, s.dayEnd));
+    let { dayStart, dayEnd } = configuredHours(this.model.settings, s);
     for (const d of dayMoments) {
       for (const it of byDay.get(d.format('YYYY-MM-DD')) || []) {
         if (it.allDay) continue;
@@ -2720,6 +2919,20 @@ class CalendarRenderer {
     const scroll = grid.createDiv({ cls: 'dn-tg-scroll' });
     const inner = scroll.createDiv({ cls: 'dn-tg-inner' });
     inner.style.setProperty('--dn-hours', String(dayEnd - dayStart));
+    inner.style.setProperty('--dn-time-zoom', String(v.zoom));
+    let wheelDelta = 0;
+    scroll.addEventListener('wheel', (e) => {
+      if (!e.ctrlKey || e.altKey || !e.deltaY) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (this._activeDrags.size) return;
+      const delta = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? scroll.clientHeight : 1);
+      if (Math.sign(delta) !== Math.sign(wheelDelta)) wheelDelta = 0;
+      wheelDelta += delta;
+      if (Math.abs(wheelDelta) < 40) return;
+      this.setZoom(this.view().zoom + (wheelDelta < 0 ? 0.25 : -0.25), e.clientY);
+      wheelDelta = 0;
+    }, { passive: false });
 
     const hours = inner.createDiv({ cls: 'dn-tg-hours' });
     for (let h = dayStart; h < dayEnd; h++) {
@@ -2808,12 +3021,48 @@ class CalendarRenderer {
     const showsNow = this._timeGridInfo.cols.has(todayIso) && nowMin >= dayStartMin && nowMin <= dayEndMin;
     const centered = (typeof v.selSlot === 'number') || showsNow;
     const focusMin = (typeof v.selSlot === 'number') ? v.selSlot * 60 : (showsNow ? nowMin : Math.max(dayStartMin, 8 * 60));
+    const context = [v.view, v.anchor, v.selSlot ?? ''].join('|');
+    const saved = this._forceTimeScroll ? null : v.timeScroll;
+    this._forceTimeScroll = false;
+    let ready = false;
+    const saveScroll = () => {
+      if (!ready || !inner.clientHeight) return;
+      v.timeScroll = { context, minute: dayStartMin + scroll.scrollTop / inner.clientHeight * totalMin };
+    };
+    this._saveTimeScroll = saveScroll;
+    scroll.addEventListener('scroll', saveScroll, { passive: true });
     const applyScroll = (tries) => {
-      if (this._destroyed || !scroll.isConnected) return; // a re-render replaced this grid
+      if (this._destroyed || !scroll.isConnected) return;
       const innerH = inner.clientHeight;
-      if (!innerH) { if (tries < 30) window.requestAnimationFrame(() => applyScroll(tries + 1)); return; }
-      const pad = centered ? Math.max(20, scroll.clientHeight / 2 - 22) : 20;
-      scroll.scrollTop = Math.max(0, ((focusMin - dayStartMin) / totalMin) * innerH - pad);
+      if (!innerH || !scroll.clientHeight) { if (tries < 30) window.requestAnimationFrame(() => applyScroll(tries + 1)); return; }
+      if (v.zoomFit) this.fitDay();
+      else {
+        const restored = timeScrollOffset(saved, context, dayStartMin, dayEndMin, innerH);
+        const pad = centered ? Math.max(20, scroll.clientHeight / 2 - 22) : 20;
+        scroll.scrollTop = restored ?? Math.max(0, ((focusMin - dayStartMin) / totalMin) * innerH - pad);
+      }
+      ready = true;
+      saveScroll();
+    };
+    const win = scroll.ownerDocument.defaultView;
+    let frame = null;
+    const refit = () => {
+      if (!v.zoomFit || frame != null) return;
+      frame = win.requestAnimationFrame(() => {
+        frame = null;
+        if (ready && !this._destroyed && scroll.isConnected && v.zoomFit) this.fitDay();
+      });
+    };
+    const observer = typeof win.ResizeObserver === 'function' ? new win.ResizeObserver(refit) : null;
+    if (observer) { observer.observe(scroll); observer.observe(grid); }
+    win.addEventListener('resize', refit);
+    this._timeGridCleanup = () => {
+      if (observer) observer.disconnect();
+      win.removeEventListener('resize', refit);
+      scroll.removeEventListener('scroll', saveScroll);
+      if (frame != null) win.cancelAnimationFrame(frame);
+      this._saveTimeScroll = null;
+      this._timeGridCleanup = null;
     };
     applyScroll(0);
   }
@@ -4026,6 +4275,7 @@ class QuickCreateModal extends Modal {
     const timeRow = contentEl.createDiv({ cls: 'dn-quick-timerow dn-hide' });
     setIcon(timeRow.createSpan({ cls: 'dn-quick-clock' }), 'clock');
     const timeInput = timeRow.createEl('input', { cls: 'dn-in dn-quick-time', attr: { type: 'text', inputmode: 'numeric', placeholder: t('timePlaceholder'), value: this.opts.start || '' } });
+    const validateTime = timeInputValidator(timeInput, timeRow);
     const hint = contentEl.createDiv({ cls: 'dn-quick-hint', text: isTask ? t('quickTaskHint') : t('quickHint') });
 
     const syncTask = () => {
@@ -4051,7 +4301,7 @@ class QuickCreateModal extends Modal {
       if (!isTask) {
         const val = timeInput.value.trim();
         if (val) {
-          const r = parseTimeRange(val); // "15-18" → start 15:00 + end 18:00; "1518"/"15:18" → start only
+          const r = validateTime();
           if (!r) { timeRow.removeClass('dn-hide'); timeInput.focus(); timeInput.select(); return; } // invalid → let them fix it
           start = r.start;
           endTyped = r.end;
@@ -4090,9 +4340,9 @@ class QuickCreateModal extends Modal {
     const foot = contentEl.createDiv({ cls: 'dn-modal-foot' });
     const more = foot.createEl('button', { text: t('moreOptions') });
     more.addEventListener('click', () => {
+      const r = isTask ? null : validateTime();
+      if (!isTask && !r) { timeRow.removeClass('dn-hide'); timeInput.focus(); return; }
       committed = true;
-      const val = timeInput.value.trim();
-      const r = val ? parseTimeRange(val) : null; // carry a typed range into the editor
       const start = r ? r.start : (this.opts.start || null);
       const end = (r && r.end) ? r.end : (this.opts.end || null);
       this.close();
@@ -4217,6 +4467,64 @@ class SearchModal extends Modal {
 /* ------------------------------------------------------------------ *
  * Calendar name                                                       *
  * ------------------------------------------------------------------ */
+class CalendarSettingsModal extends Modal {
+  constructor(app, renderer) { super(app); this.renderer = renderer; }
+
+  live() {
+    const r = this.renderer;
+    return (r.plugin.liveRenderers && r.plugin.liveRenderers.get(r.stateKey())) || r;
+  }
+
+  onOpen() {
+    const { contentEl, titleEl } = this;
+    contentEl.addClass('dn-modal');
+    titleEl.setText(t('calendarSettings'));
+    const r = this.live();
+    const settings = r.model.settings;
+    const hours = configuredHours(settings, r.plugin.settings);
+    let inherit = settings.dayStart == null && settings.dayEnd == null;
+    let start = hours.dayStart, end = hours.dayEnd;
+    let startSelect, endSelect;
+    contentEl.createDiv({ cls: 'dn-quick-hint', text: t('hoursHint') });
+    new Setting(contentEl).setName(t('inheritHours')).addToggle((toggle) => {
+      toggle.setValue(inherit).onChange((value) => {
+        inherit = value;
+        startSelect.setDisabled(value);
+        endSelect.setDisabled(value);
+        error.setText('');
+      });
+    });
+    new Setting(contentEl).setName(t('s_dayStart')).addDropdown((select) => {
+      startSelect = select;
+      for (let h = 0; h < 24; h++) select.addOption(String(h), String(h).padStart(2, '0') + ':00');
+      select.setValue(String(start)).setDisabled(inherit).onChange((value) => { start = Number(value); error.setText(''); });
+    });
+    new Setting(contentEl).setName(t('s_dayEnd')).addDropdown((select) => {
+      endSelect = select;
+      for (let h = 1; h <= 24; h++) select.addOption(String(h), String(h).padStart(2, '0') + ':00');
+      select.setValue(String(end)).setDisabled(inherit).onChange((value) => { end = Number(value); error.setText(''); });
+    });
+    const error = contentEl.createDiv({ cls: 'dn-settings-error', attr: { role: 'alert' } });
+    const foot = contentEl.createDiv({ cls: 'dn-modal-foot' });
+    foot.createDiv({ cls: 'dn-foot-spacer' });
+    foot.createEl('button', { text: t('cancel') }).addEventListener('click', () => this.close());
+    foot.createEl('button', { cls: 'mod-cta', text: t('save') }).addEventListener('click', () => {
+      if (!inherit && end <= start) { error.setText(t('invalidHours')); return; }
+      const live = this.live();
+      const current = live.model.settings;
+      const changed = inherit ? current.dayStart != null || current.dayEnd != null
+        : current.dayStart !== start || current.dayEnd !== end;
+      if (changed) live.mutate((m) => {
+        if (inherit) { delete m.settings.dayStart; delete m.settings.dayEnd; }
+        else { m.settings.dayStart = start; m.settings.dayEnd = end; }
+      });
+      this.close();
+    });
+  }
+
+  onClose() { this.contentEl.empty(); returnFocusToGrid(this.live()); }
+}
+
 class TitleModal extends Modal {
   constructor(app, renderer) { super(app); this.renderer = renderer; }
 
@@ -4968,7 +5276,7 @@ class MdCalendarPlugin extends Plugin {
     CFG.snap = [15, 30, 60].includes(Number(s.snapMin)) ? Number(s.snapMin) : 30;
   }
 
-  /* Per-block UI state (current view, completed-items filter). Kept out of the note on purpose —
+  /* Per-block UI state (current view, completed-items filter, time zoom). Kept out of the note on purpose —
    * see CalendarRenderer.view(). Saves are debounced: a keyboard user can cycle views fast. */
   recallViewState(key) { return (this.settings.viewMemory && this.settings.viewMemory[key]) || {}; }
 

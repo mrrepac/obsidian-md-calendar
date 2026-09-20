@@ -38,7 +38,7 @@
   cursor: pointer;
 }
 .dn-icon-btn:hover { color: var(--text-normal); }
-.dn-icon-btn.is-on { color: var(--interactive-accent); border-color: var(--interactive-accent); }
+.dn-icon-btn.is-on { color: var(--text-on-accent); background: var(--interactive-accent); border-color: var(--interactive-accent); }
 .dn-icon-btn svg, .dn-icon-btn .svg-icon { width: 16px; height: 16px; }
 .dn-today {
   padding: 4px 10px;
@@ -376,19 +376,21 @@
 .dn-tg-adbars .dn-mbar { margin: 0 3px 0 2px; }
 
 .dn-tg-scroll { max-height: 60vh; overflow-y: auto; scrollbar-gutter: stable; }
-.dn-tg-inner { display: flex; height: calc(var(--dn-hours, 15) * var(--dn-hour-h)); }
+.dn-tg-inner { display: flex; height: calc(var(--dn-hours, 15) * var(--dn-hour-h) * var(--dn-time-zoom, 1)); }
 .dn-tg-hours { flex: 0 0 48px; }
-.dn-tg-hour { height: var(--dn-hour-h); border-top: 1px solid var(--background-modifier-border); position: relative; }
+.dn-tg-hour { height: calc(var(--dn-hour-h) * var(--dn-time-zoom, 1)); border-top: 1px solid var(--background-modifier-border); position: relative; }
 .dn-tg-hour span { position: absolute; top: -7px; right: 5px; font-size: var(--font-ui-smaller); color: var(--text-faint); background: var(--background-primary); padding: 0 2px; }
 .dn-tg-hour:first-child span { top: 1px; }
 .dn-tg-cols { flex: 1 1 auto; display: flex; }
 .dn-tg-col { flex: 1 1 0; position: relative; border-left: 1px solid var(--background-modifier-border); }
 .dn-tg-col.is-today { background: color-mix(in srgb, var(--interactive-accent) 5%, transparent); }
-.dn-tg-slot { height: var(--dn-hour-h); border-top: 1px solid var(--background-modifier-border); cursor: pointer; }
+.dn-tg-slot { height: calc(var(--dn-hour-h) * var(--dn-time-zoom, 1)); border-top: 1px solid var(--background-modifier-border); cursor: pointer; }
 .dn-tg-slot:hover { background: var(--background-modifier-hover); }
 
 .dn-ev {
   --dn-ev: var(--interactive-accent);
+  container-type: size;
+  container-name: dn-event;
   position: absolute;
   overflow: hidden;
   padding: 2px 4px;
@@ -692,6 +694,7 @@ body.dn-drag-active.dn-copy { cursor: copy; } /* Ctrl/Cmd held → drop leaves a
 /* ---- placement mode (quick-add: click a day/slot to drop the event) ---- */
 .dn-place {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   margin-top: 6px;
@@ -847,3 +850,54 @@ body.dn-drag-active.dn-copy { cursor: copy; } /* Ctrl/Cmd held → drop leaves a
  * needing !important. */
 .dn-hide,
 .dn-modal .dn-hide { display: none; }
+
+/* Time-axis zoom controls (week/day only). */
+.dn-zoom { display: flex; align-items: center; gap: 2px; }
+.dn-zoom button { padding: 2px 6px; height: 26px; box-shadow: none; }
+.dn-zoom .dn-zoom-reset { min-width: 48px; font-size: var(--font-ui-smaller); font-variant-numeric: tabular-nums; }
+
+.dn-zoom-fit { min-width: 44px; }
+.dn-settings-error { color: var(--text-error); }
+
+.dn-add-preview { color: var(--text-muted); font-size: var(--font-ui-smaller); padding: 4px 0; }
+.dn-zoom-fit[aria-pressed="true"] { color: var(--text-on-accent); background: var(--interactive-accent); }
+
+/* Touch targets grow without enlarging the icons or affecting desktop density. */
+.is-mobile .md-calendar .dn-header button,
+.is-mobile .md-calendar .dn-header .dn-icon-btn,
+.is-mobile .md-calendar .dn-add-help,
+.is-mobile .md-calendar .dn-place-x {
+  min-width: 44px;
+  min-height: 44px;
+  height: auto;
+  flex-shrink: 0;
+}
+.is-mobile .md-calendar .dn-add-help,
+.is-mobile .md-calendar .dn-place-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.is-mobile .md-calendar .dn-zoom { gap: 8px; flex-wrap: wrap; }
+
+/* Event details follow the actual rendered height, including Auto zoom and resizing. */
+@container dn-event (max-height: 50px) {
+  .dn-ev-note { display: none; }
+}
+@container dn-event (max-height: 32px) {
+  .dn-ev-time { display: none; }
+  .dn-ev-title { white-space: nowrap; text-overflow: ellipsis; line-height: 14px; padding-right: 17px; }
+}
+@container dn-event (max-height: 18px) {
+  .dn-ev-check.dn-check { display: none; }
+  .dn-ev-title { padding-right: 0; }
+}
+@container dn-event (max-height: 13px) {
+  .dn-ev-title { display: none; }
+}
+
+.is-mobile .md-calendar .dn-zoom { flex-basis: 100%; }
+
+.dn-time-error { color: var(--text-error); font-size: var(--font-ui-smaller); flex-basis: 100%; order: 1; }
+.dn-place .dn-time-error { color: inherit; font-weight: 600; }
+.dn-quick-timerow { flex-wrap: wrap; }
