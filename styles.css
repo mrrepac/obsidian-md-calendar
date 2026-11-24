@@ -745,15 +745,19 @@ body.dn-drag-active.dn-copy { cursor: copy; } /* Ctrl/Cmd held → drop leaves a
 .view-content > .markdown-source-view.mod-cm6 > .cm-editor > .cm-scroller.dn-bleed,
 .markdown-preview-view.dn-bleed { padding-bottom: 0; }
 
-/* And with the calendar the last thing in the note, take the scrollbar away too. The block is
- * fitted to the pane, so what is left to scroll is a pixel or two of the editor's own chrome —
- * a bar for that is pure noise. Set from _settleFill(), and only while nothing follows the
- * calendar, so a note that does keep text below the block keeps its way down to it. Scrolling
- * itself still works; only the bar goes. */
+/* Hide the desktop scrollbar when the last calendar fits. Keep native scrolling available
+ * if the user adds text before Obsidian refreshes the block's section information. */
 .cm-scroller.dn-owns-pane,
-.markdown-preview-view.dn-owns-pane { overflow-y: hidden; scrollbar-width: none; }
+.markdown-preview-view.dn-owns-pane { scrollbar-width: none; }
 .cm-scroller.dn-owns-pane::-webkit-scrollbar,
 .markdown-preview-view.dn-owns-pane::-webkit-scrollbar { display: none; }
+
+/* Obsidian adds half a pane of inline bottom padding for scrolling past the last line.
+ * When a desktop calendar already fills the pane, leave only the editable line below it. */
+body:not(.is-mobile) .cm-scroller.dn-owns-pane .cm-content.dn-bleed,
+body:not(.is-mobile) .markdown-preview-view.dn-owns-pane > .markdown-preview-sizer.dn-bleed {
+  padding-bottom: 0 !important;
+}
 
 /* height, not min-height: "at least" let the block outgrow the pane, and the note answered with
  * a scrollbar. _fillHeight() measures --dn-fill so the block's margin box ends exactly at the

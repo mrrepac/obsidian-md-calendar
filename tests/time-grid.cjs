@@ -9,6 +9,7 @@ moment.now = () => Date.UTC(2026, 8, 20, 12);
 
 const sandbox = {
   module: { exports: {} }, window: {}, console, setTimeout: () => {},
+  getComputedStyle: (el) => el.style,
   require: (name) => name === 'obsidian'
     ? { moment, setIcon: () => {}, Plugin: class {}, PluginSettingTab: class {}, Modal: class {} } : {},
 };
@@ -17,6 +18,52 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '../main.js'), 'utf8') +
   '\nthis.api = { normalizeCal, serializeCal, configuredHours, normalizeZoom, parseAddTitle, timeScrollOffset, parseTimeRange, timeInputValidator, expandInstances, CalendarRenderer };', sandbox);
 const { normalizeCal, serializeCal, configuredHours, normalizeZoom, parseAddTitle, timeScrollOffset, parseTimeRange, timeInputValidator, expandInstances, CalendarRenderer } = sandbox.api;
 const defaults = { firstView: 'month', dayStart: 7, dayEnd: 22 };
+
+test('pane fit preserves room for the calendar and scroll access to the rest of the note', (t) => {
+  sandbox.window.requestAnimationFrame = (fn) => fn();
+  t.after(() => { delete sandbox.window.requestAnimationFrame; });
+  const block = ['Heading', '```md-calendar', '{}', '```'].join('\n');
+  function fit({ tail = '', tailHeight = 0, scrollTop = 0, above = 120, hasSectionInfo = true } = {}) {
+    let height = 400;
+    let ownsPane;
+    const scroller = {
+      style: {}, scrollTop, getBoundingClientRect: () => ({ top: 50, bottom: 850 }),
+      toggleClass(name, on) { assert.equal(name, 'dn-owns-pane'); ownsPane = on; },
+    };
+    const wrapper = {
+      parentElement: { className: 'markdown-preview-sizer' },
+      style: { marginBottom: '12px' },
+      getBoundingClientRect: () => ({ bottom: 50 + above + height + tailHeight - scrollTop }),
+    };
+    const renderer = Object.create(CalendarRenderer.prototype);
+    renderer.el = {
+      parentElement: wrapper, isConnected: true,
+      nextElementSibling: tailHeight ? { getBoundingClientRect: () => ({ height: tailHeight }) } : null,
+      getBoundingClientRect: () => ({ height, bottom: 50 + above + height - scrollTop }),
+      style: {
+        marginBottom: '4px',
+        getPropertyValue: () => height + 'px',
+        setProperty(name, value) { assert.equal(name, '--dn-fill'); height = parseFloat(value); },
+      },
+    };
+    renderer.ctx = { getSectionInfo: () => hasSectionInfo ? { text: block + '\n' + tail, lineEnd: 3 } : null };
+    renderer._settleFill(scroller, 0);
+    return { height, ownsPane };
+  }
+
+  assert.deepEqual(fit({ tail: '\n  ' }), { height: 676, ownsPane: true });
+  for (const tailHeight of [24, 900]) {
+    for (const scrollTop of [0, Math.min(200, tailHeight)]) {
+      assert.deepEqual(fit({ tail: 'Trip notes', tailHeight, scrollTop }),
+        { height: 676, ownsPane: false });
+    }
+  }
+  // A missing section or a paragraph outside the rendered viewport must not lock scrolling.
+  assert.deepEqual(fit({ hasSectionInfo: false }), { height: 676, ownsPane: false });
+  assert.deepEqual(fit({ tail: 'Offscreen text' }), { height: 676, ownsPane: false });
+  // A calendar deep in the note needs scrolling even if it is the last block.
+  assert.deepEqual(fit({ above: 740 }), { height: 340, ownsPane: false });
+});
 
 test('block hours survive saving, including midnight and end of day', () => {
   for (const dayEnd of [20, 24]) {

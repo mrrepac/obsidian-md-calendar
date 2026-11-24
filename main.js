@@ -31,9 +31,7 @@ const {
 const { EditorView } = require('@codemirror/view');
 const { EditorState } = require('@codemirror/state');
 
-/* Floor for the full-bleed height. A note carrying enough text under the calendar can't have
- * both fit; past this point the grid stops being usable, so the note keeps its scrollbar
- * instead of the calendar being crushed. */
+/* Keep the grid usable when little of the pane is left above the fold. */
 const MIN_FILL = 340;
 
 
@@ -1641,8 +1639,7 @@ class CalendarRenderer {
     return false;
   }
 
-  /* Fit the block to the pane exactly: the note must not scroll, and no strip of dead space may
-   * be left under the calendar.
+  /* Fit the calendar in the space left below its starting position in the note.
    *
    * Everything here is read off element boxes. The obvious reading — scrollHeight minus
    * clientHeight — is unusable twice over. It is stale: CodeMirror keeps its own height map for
@@ -1672,75 +1669,32 @@ class CalendarRenderer {
     const sr = scroller.getBoundingClientRect();
     // Inside bottom edge of the scroller: its box, less its border and its own bottom padding.
     const inner = sr.bottom - (parseFloat(cs.borderBottomWidth) || 0) - (parseFloat(cs.paddingBottom) || 0);
-    // Measure the outermost wrapper, not the calendar itself: Obsidian puts the rendered block
-    // inside a container of its own, and that container's bottom margin is below the calendar.
-    const top = this._blockTop();
-    const tr = top.getBoundingClientRect();
-    const foot = parseFloat(getComputedStyle(top).marginBottom) || 0;
-    const after = this._afterBlock(top);
-    // With nothing after the calendar, nothing in the note can be out of reach — so hide the
-    // pane's scrollbar instead of leaving one standing for the last pixel of editor chrome.
-    // With something after it, the bar stays: it is the only way down to that text.
-    const alone = this._nothingFollows();
-    scroller.toggleClass('dn-owns-pane', alone === null ? after === 0 : alone);
-    // Compare both edges in the note's own coordinates, measured from the top of the scroller.
-    // The visible bottom does not move when the note scrolls, but the block does: read off the
-    // screen, a note scrolled down N px puts the block N px higher than it sits in the note, and
-    // the fit used to grow it by exactly N, past the bottom of the pane. That happened whenever
-    // something re-fit a scrolled note: a re-render (e.g. another plugin editing the block), a
-    // pane resize.
-    const viewBottom = inner - sr.top;
-    const blockBottom = tr.bottom - sr.top + scroller.scrollTop + foot;
-    const delta = Math.round(viewBottom - blockBottom - after);
+    const rect = this.el.getBoundingClientRect();
+    const margin = parseFloat(getComputedStyle(this.el).marginBottom) || 0;
+    // scrollTop converts the calendar's on-screen edge back to its position in the note.
+    const blockBottom = rect.bottom + scroller.scrollTop + margin;
+    const delta = Math.round(inner - blockBottom);
+    // Keep the scrollbar when the minimum grid height extends past the pane, or when
+    // Obsidian cannot yet confirm that this is the last block in the note.
+    scroller.toggleClass('dn-owns-pane', delta >= -1 && this._nothingFollows());
     if (Math.abs(delta) <= 1) return;
-    const next = Math.max(MIN_FILL, Math.round(this.el.getBoundingClientRect().height + delta));
+    const next = Math.max(MIN_FILL, Math.round(rect.height + delta));
     if (next === Math.round(parseFloat(this.el.style.getPropertyValue('--dn-fill')) || 0)) return;
     this.el.style.setProperty('--dn-fill', next + 'px');
     if (pass < 3) window.requestAnimationFrame(() => this._settleFill(scroller, pass + 1));
   }
 
-  /* The block as the note's flow sees it: walk out to whatever sits directly in the note's own
-   * content element. Anything above that is the editor, not the note. */
-  _blockTop() {
-    let n = this.el;
-    for (let i = 0; i < 12 && n.parentElement; i++) {
-      const c = n.parentElement.className || '';
-      if (/cm-content|markdown-preview-sizer/.test(c)) return n;
-      n = n.parentElement;
-    }
-    return this.el;
-  }
-
-  /* Whatever the note still puts after the calendar. The block may take the pane's height, but
-   * not at the cost of sitting on top of a paragraph written below it.
-   *
-   * CodeMirror parks scaffolding of its own around a block widget — zero-width buffer images,
-   * measuring stubs — and those are siblings too. They are not the note, so anything without
-   * real height is skipped; counting them made the calendar a few pixels short. */
-  _afterBlock(top) {
-    let after = 0;
-    for (let s = top.nextElementSibling; s; s = s.nextElementSibling) {
-      if (s.classList && s.classList.contains('cm-widgetBuffer')) continue;
-      const h = s.getBoundingClientRect().height;
-      if (h >= 2) after += h;
-    }
-    return after;
-  }
-
-  /* Is the calendar the last thing in the note? Asked of the note's own text rather than of the
-   * DOM: the editor's scaffolding sits in the element tree beside the block and is impossible to
-   * tell from content by looking at boxes. null when the answer isn't available — during a
-   * reflow the block's position in the file may be momentarily unknown — and the caller then
-   * falls back on measuring. */
+  /* CodeMirror may only render the visible part of a note. Check the source for trailing text. */
   _nothingFollows() {
     try {
       const info = this.ctx.getSectionInfo && this.ctx.getSectionInfo(this.el);
-      if (!info) return null;
-      const lines = String(info.text || '').split('\n');
+      if (!info || typeof info.text !== 'string' || !Number.isInteger(info.lineEnd)) return false;
+      const lines = info.text.split('\n');
+      if (info.lineEnd < 0 || info.lineEnd >= lines.length) return false;
       for (let i = info.lineEnd + 1; i < lines.length; i++) if (lines[i].trim()) return false;
       return true;
     } catch (e) {
-      return null;
+      return false;
     }
   }
 

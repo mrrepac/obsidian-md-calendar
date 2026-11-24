@@ -246,13 +246,11 @@ column. The height is measured, not assumed, and follows a window resize, a side
 toggle or a split. The setting chooses where this applies — desktop only (the default),
 mobile only, everywhere, or nowhere — since the two platforms fit differently.
 
-On desktop the fit is exact: the block ends where the pane does, so the note itself has
-nothing left to scroll. When the calendar is the last thing in the note, its scrollbar
-goes as well. Write anything below the block and the scrollbar comes back — the calendar
-gives up exactly the height that text needs rather than covering it. On mobile, where a
-resize or a sidebar toggle can't recover space the way it can on desktop, the calendar
-takes the same measured height but is free to grow past it — the note scrolls instead of
-anything being clipped.
+On desktop the calendar fills the space between its starting position in the note and
+the bottom of the pane. You can write text below the calendar and scroll down to read
+it. The calendar stays the same height whether you add one paragraph or a whole page.
+If less than 340 px is available, the calendar keeps that minimum height and the note
+scrolls. On mobile the calendar can grow taller to show its contents.
 
 ## What's coming up
 
