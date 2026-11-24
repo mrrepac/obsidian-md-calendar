@@ -752,6 +752,13 @@ body.dn-drag-active.dn-copy { cursor: copy; } /* Ctrl/Cmd held → drop leaves a
 .cm-scroller.dn-owns-pane::-webkit-scrollbar,
 .markdown-preview-view.dn-owns-pane::-webkit-scrollbar { display: none; }
 
+/* Obsidian adds half a pane of inline bottom padding for scrolling past the last line.
+ * When a desktop calendar already fills the pane, leave only the editable line below it. */
+body:not(.is-mobile) .cm-scroller.dn-owns-pane .cm-content.dn-bleed,
+body:not(.is-mobile) .markdown-preview-view.dn-owns-pane > .markdown-preview-sizer.dn-bleed {
+  padding-bottom: 0 !important;
+}
+
 /* height, not min-height: "at least" let the block outgrow the pane, and the note answered with
  * a scrollbar. _fillHeight() measures --dn-fill so the block's margin box ends exactly at the
  * inside bottom of the scroller. And overflow, because that height is exact: in a pane too short
