@@ -1683,7 +1683,15 @@ class CalendarRenderer {
     // With something after it, the bar stays: it is the only way down to that text.
     const alone = this._nothingFollows();
     scroller.toggleClass('dn-owns-pane', alone === null ? after === 0 : alone);
-    const delta = Math.round(inner - (tr.bottom + foot) - after);
+    // Compare both edges in the note's own coordinates, measured from the top of the scroller.
+    // The visible bottom does not move when the note scrolls, but the block does: read off the
+    // screen, a note scrolled down N px puts the block N px higher than it sits in the note, and
+    // the fit used to grow it by exactly N, past the bottom of the pane. That happened whenever
+    // something re-fit a scrolled note: a re-render (e.g. another plugin editing the block), a
+    // pane resize.
+    const viewBottom = inner - sr.top;
+    const blockBottom = tr.bottom - sr.top + scroller.scrollTop + foot;
+    const delta = Math.round(viewBottom - blockBottom - after);
     if (Math.abs(delta) <= 1) return;
     const next = Math.max(MIN_FILL, Math.round(this.el.getBoundingClientRect().height + delta));
     if (next === Math.round(parseFloat(this.el.style.getPropertyValue('--dn-fill')) || 0)) return;
